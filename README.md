@@ -6,6 +6,8 @@ Copy the watts_vision folder from custom_components to your custom_components fo
 
 Add the following lines to configuration.yaml
 
+```
 watts_vision:
   username: [username]
   password: [password]
+```
