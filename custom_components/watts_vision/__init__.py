@@ -31,7 +31,7 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
-PLATFORMS = ["sensor"]
+PLATFORMS = ["binary_sensor", "sensor"]
 
 SCAN_INTERVAL = timedelta(seconds=120)
 
