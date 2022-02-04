@@ -1,19 +1,10 @@
 """Watts Vision sensor platform."""
 from datetime import timedelta
 import logging
-from typing import Any, Callable, Dict, Optional
+from typing import Callable, Optional
 from numpy import NaN
 
-import voluptuous as vol
-
-from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import (
-    CONF_PASSWORD,
-    CONF_USERNAME,
-)
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.entity import Entity
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.typing import (
     ConfigType,
     DiscoveryInfoType,
@@ -50,7 +41,8 @@ async def async_setup_platform(
     async_add_entities(sensors, update_before_add=True)
 
 
-class WattsVisionThermostatSensor(Entity):
+#class WattsVisionThermostatSensor(Entity):
+class WattsVisionThermostatSensor(SensorEntity):
     """Representation of a Watts Vision thermostat."""
 
     def __init__(self, wattsClient: WattsApi, smartHome: str, deviceID: str):
@@ -58,7 +50,6 @@ class WattsVisionThermostatSensor(Entity):
         self.client = wattsClient
         self.smartHome = smartHome
         self.deviceID = deviceID
-        self.attrs: Dict[str, Any] = {}
         self._name = "watts_thermostat"
         self._state = None
         self._available = True
@@ -81,10 +72,6 @@ class WattsVisionThermostatSensor(Entity):
     @property
     def state(self) -> Optional[str]:
         return self._state
-
-    # @property
-    # def extra_state_attributes(self) -> Dict[str, Any]:
-    #     return self.attrs
     
     async def async_update(self):
         try:
@@ -107,7 +94,7 @@ class WattsVisionThermostatSensor(Entity):
             self._available = False
             _LOGGER.exception("Error retrieving data.")
 
-class WattsVisionTemperatureSensor(Entity):
+class WattsVisionTemperatureSensor(SensorEntity):
     """Representation of a Watts Vision temperature sensor."""
 
     def __init__(self, wattsClient: WattsApi, smartHome: str, deviceID: str):
@@ -115,7 +102,6 @@ class WattsVisionTemperatureSensor(Entity):
         self.client = wattsClient
         self.smartHome = smartHome
         self.deviceID = deviceID
-        self.attrs: Dict[str, Any] = {}
         self._name = "watts_vision_"
         self._state = None
         self._available = True
@@ -159,7 +145,7 @@ class WattsVisionTemperatureSensor(Entity):
             self._available = False
             _LOGGER.exception("Error retrieving data.")
 
-class WattsVisionSetTemperatureSensor(Entity):
+class WattsVisionSetTemperatureSensor(SensorEntity):
     """Representation of a Watts Vision temperature sensor."""
 
     def __init__(self, wattsClient: WattsApi, smartHome: str, deviceID: str):
@@ -167,7 +153,6 @@ class WattsVisionSetTemperatureSensor(Entity):
         self.client = wattsClient
         self.smartHome = smartHome
         self.deviceID = deviceID
-        self.attrs: Dict[str, Any] = {}
         self._name = "watts_vision_"
         self._state = None
         self._available = True
@@ -209,22 +194,16 @@ class WattsVisionSetTemperatureSensor(Entity):
 
             if smartHomeDevice["gv_mode"] == "0":
                 self._state = int(smartHomeDevice["consigne_confort"]) / 10
-                # self._state = "Comfort"
             if smartHomeDevice["gv_mode"] == "1":
                 self._state = NaN
-                # self._state = "Off"
             if smartHomeDevice["gv_mode"] == "2":
                 self._state = int(smartHomeDevice["consigne_hg"]) / 10
-                # self._state = "Frost protection"
             if smartHomeDevice["gv_mode"] == "3":
                 self._state = int(smartHomeDevice["consigne_eco"]) / 10
-                # self._state = "Eco"
             if smartHomeDevice["gv_mode"] == "4":
                 self._state = int(smartHomeDevice["consigne_boost"]) / 10
-                #self._state = "Boost"
             if smartHomeDevice["gv_mode"] == "11":
                 self._state = int(smartHomeDevice["consigne_manuel"]) / 10
-                #self._state = "Program"
 
         except:
             self._available = False
