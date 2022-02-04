@@ -2,20 +2,23 @@ import functools
 import logging
 import requests
 
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.typing import (
+    HomeAssistantType,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 class WattsApi:
-    """Interface to the SEMS API."""
+    """Interface to the Watts API."""
 
-    def __init__(self, hass, username, password):
+    def __init__(self, hass: HomeAssistantType, username: str, password: str):
         """Init dummy hub."""
         self._hass = hass
         self._username = username
         self._password = password
         self._token = None
         self._refresh_token = None
+        self._smartHomeData = {}
     
     async def test_authentication(self) -> bool:
         """Test if we can authenticate with the host."""
@@ -51,9 +54,20 @@ class WattsApi:
             _LOGGER.error("Something went wrong fetching token: {0}".format(request_token_result.status_code))
             raise None
 
-    async def getSmartHomes(self, firstTry = True):
-        """Get the user data"""
+    async def loadData(self):
+        """load data from api"""
+        smarthomes = await self.loadSmartHomes()
+        self._smartHomeData = smarthomes
+        
+        """load devices for each smart home"""
+        for y in range(len(self._smartHomeData)):
+            devices = await self.loadDevices(self._smartHomeData[str(y)]['smarthome_id'])
+            self._smartHomeData[str(y)]['devices'] = devices
 
+        return True
+
+    async def loadSmartHomes(self, firstTry: bool = True):
+        """Load the user data"""
         headers = { 
             'Authorization': 'Bearer {}'.format(self._token) 
         }
@@ -76,9 +90,9 @@ class WattsApi:
                 return user_data_result.json()['data']['smarthomes']
             else:
                 if firstTry:
-                    """Token may be expired, try to fetch new token"""
+                    # Token may be expired, try to fetch new token
                     token = await self.getLoginToken()
-                    return await self.getSmartHomes(firstTry=False)
+                    return await self.loadSmartHomes(firstTry=False)
                 else:
                     _LOGGER.error("Something went wrong fetching user data./nCode: {0}, Key: {1}, Value: {2}".format(user_data_result.json()['code']['code'], user_data_result.json()['code']['key'], user_data_result.json()['code']['value']))
                     return None
@@ -86,8 +100,8 @@ class WattsApi:
             _LOGGER.error("Something went wrong fetching user data: {0}".format(user_data_result.status_code))
             return None
     
-    async def getDevices(self, smarthome, firstTry = True):
-        """Get devices for smart home"""
+    async def loadDevices(self, smarthome: str, firstTry: bool = True):
+        """Load devices for smart home"""
 
         headers = { 
             'Authorization': 'Bearer {}'.format(self._token) 
@@ -112,9 +126,9 @@ class WattsApi:
                 return devices_result.json()['data']['devices']
             else:
                 if firstTry:
-                    """Token may be expired, try to fetch new token"""
+                    # Token may be expired, try to fetch new token
                     token = await self.getLoginToken()
-                    return await self.getDevices(smarthome, firstTry=False)
+                    return await self.loadDevices(smarthome, firstTry=False)
                 else:
                     _LOGGER.error("Something went wrong fetching user data./nCode: {0}, Key: {1}, Value: {2}".format(devices_result.json()['code']['code'], devices_result.json()['code']['key'], devices_result.json()['code']['value']))
                     return None
@@ -122,40 +136,24 @@ class WattsApi:
             _LOGGER.error("Something went wrong fetching devices: {0}".format(devices_result.status_code))
             return None
     
-    async def getDevice(self, smarthome, deviceId, firstTry = True):
+    async def reloadDevices(self):
+        """load devices for each smart home"""
+        for y in range(len(self._smartHomeData)):
+            devices = await self.loadDevices(self._smartHomeData[str(y)]['smarthome_id'])
+            self._smartHomeData[str(y)]['devices'] = devices
+
+        return True
+    
+    def getSmartHomes(self):
+        """Get smarthomes"""
+        return self._smartHomeData
+    
+    async def getDevice(self, smarthome: str, deviceId: str, firstTry: bool = True):
         """Get specific device"""
-
-        headers = { 
-            'Authorization': 'Bearer {}'.format(self._token) 
-        }
-        payload = { 
-            'token': 'true', 
-            'smarthome_id': smarthome, 
-            'lang': 'nl_NL' 
-        }
-        func = functools.partial(
-            requests.post,
-            url = 'https://smarthome.wattselectronics.com/api/v0.1/human/smarthome/read',
-            headers = headers, 
-            data = payload
-        )
-
-        devices_result = await self._hass.async_add_executor_job(func)
-
-        if devices_result.status_code == 200:
-            if devices_result.json()['code']['code'] == '1' and devices_result.json()['code']['key'] == 'OK' and devices_result.json()['code']['value'] == 'OK':
-                for y in range(len(devices_result.json()['data']['devices'])):
-                    if devices_result.json()['data']['devices'][str(y)]['id'] == deviceId:
-                        return devices_result.json()['data']['devices'][str(y)]
-            else:
-                if firstTry:
-                    """Token may be expired, try to fetch new token"""
-                    token = await self.getLoginToken()
-                    return await self.getDevice(smarthome, deviceId, firstTry=False)
-                else:
-                    _LOGGER.error("Something went wrong fetching user data./nCode: {0}, Key: {1}, Value: {2}".format(devices_result.json()['code']['code'], devices_result.json()['code']['key'], devices_result.json()['code']['value']))
-                    return None
-        else:
-            _LOGGER.error("Something went wrong fetching devices: {0}".format(devices_result.status_code))
-            return None
-
+        for y in range(len(self._smartHomeData)):
+            if self._smartHomeData[str(y)]['smarthome_id'] == smarthome:
+                for x in range(len(self._smartHomeData[str(y)]['devices'])):
+                    if self._smartHomeData[str(y)]['devices'][str(x)]['id'] == deviceId:
+                        return self._smartHomeData[str(y)]['devices'][str(x)]
+        
+        return None
