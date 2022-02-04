@@ -11,6 +11,9 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.discovery import load_platform
+from homeassistant.helpers.event import async_track_time_interval
+
+from custom_components.watts_vision.watts_api import WattsApi
 
 from .const import DOMAIN
 
@@ -36,13 +39,25 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the Watts component from yaml configuration."""
     hass.data.setdefault(DOMAIN, {})
 
-    hass.data[DOMAIN][CONF_USERNAME] = config[DOMAIN].get(CONF_USERNAME)
-    hass.data[DOMAIN][CONF_PASSWORD] = config[DOMAIN].get(CONF_PASSWORD)
+    client = WattsApi(hass, config[DOMAIN].get(CONF_USERNAME), config[DOMAIN].get(CONF_PASSWORD))
+    await client.loadData()
+
+    hass.data[DOMAIN]['api'] = client
 
     for platform in PLATFORMS:
-        # hass.async_create_task(
-        #     hass.config_entries.async_forward_entry_setup(entry, platform)
-        # )
         load_platform(hass, platform, DOMAIN, {}, config)
+    
+    async def refresh_devices(event_time):
+        await client.reloadDevices()
+    
+    async_track_time_interval(hass, refresh_devices, SCAN_INTERVAL)
 
     return True
+
+# from homeassistant import core
+
+
+# async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
+#     """Set up the Watts Vision component."""
+#     # @TODO: Add setup code.
+#     return True
