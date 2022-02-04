@@ -70,12 +70,9 @@ class WattsVisionHeatingBinarySensor(BinarySensorEntity):
     async def async_update(self):
         try:
             smartHomeDevice = await self.client.getDevice(self.smartHome, self.deviceID)
-            _LOGGER.warning(self.deviceID + ': ' + smartHomeDevice["heating_up"])
             if smartHomeDevice["heating_up"] == '0':
-                _LOGGER.warning(self.deviceID + ': not heating up')
                 self._state = False
             else:
-                _LOGGER.warning(self.deviceID + ': heating up')
                 self._state = True
         except:
             self._available = False
