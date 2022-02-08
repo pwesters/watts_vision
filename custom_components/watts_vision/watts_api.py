@@ -43,9 +43,11 @@ class WattsApi:
             url = "https://smarthome.wattselectronics.com/auth/realms/watts/protocol/openid-connect/token",
             data = payload
         )
+        _LOGGER.debug("Trying to get an access token.")
         request_token_result = await self._hass.async_add_executor_job(func)
 
         if request_token_result.status_code == 200:
+            _LOGGER.debug("Requesting access token succesfull")
             token = request_token_result.json()['access_token']
             self._token = token
             self._refresh_token = request_token_result.json()['refresh_token']
@@ -60,9 +62,10 @@ class WattsApi:
         self._smartHomeData = smarthomes
         
         """load devices for each smart home"""
-        for y in range(len(self._smartHomeData)):
-            devices = await self.loadDevices(self._smartHomeData[str(y)]['smarthome_id'])
-            self._smartHomeData[str(y)]['devices'] = devices
+        if self._smartHomeData is not None:
+            for y in range(len(self._smartHomeData)):
+                devices = await self.loadDevices(self._smartHomeData[str(y)]['smarthome_id'])
+                self._smartHomeData[str(y)]['devices'] = devices
 
         return True
 
@@ -94,7 +97,7 @@ class WattsApi:
                     token = await self.getLoginToken()
                     return await self.loadSmartHomes(firstTry=False)
                 else:
-                    _LOGGER.error("Something went wrong fetching user data./nCode: {0}, Key: {1}, Value: {2}".format(user_data_result.json()['code']['code'], user_data_result.json()['code']['key'], user_data_result.json()['code']['value']))
+                    _LOGGER.error("Something went wrong fetching user data. Code: {0}, Key: {1}, Value: {2}, Data: {3}".format(user_data_result.json()['code']['code'], user_data_result.json()['code']['key'], user_data_result.json()['code']['value'], user_data_result.json()['data']))
                     return None
         else:
             _LOGGER.error("Something went wrong fetching user data: {0}".format(user_data_result.status_code))
@@ -130,7 +133,7 @@ class WattsApi:
                     token = await self.getLoginToken()
                     return await self.loadDevices(smarthome, firstTry=False)
                 else:
-                    _LOGGER.error("Something went wrong fetching user data./nCode: {0}, Key: {1}, Value: {2}".format(devices_result.json()['code']['code'], devices_result.json()['code']['key'], devices_result.json()['code']['value']))
+                    _LOGGER.error("Something went wrong fetching user data. Code: {0}, Key: {1}, Value: {2}, Data: {3}".format(devices_result.json()['code']['code'], devices_result.json()['code']['key'], devices_result.json()['code']['value'], devices_result.json()['data']))
                     return None
         else:
             _LOGGER.error("Something went wrong fetching devices: {0}".format(devices_result.status_code))
@@ -138,9 +141,10 @@ class WattsApi:
     
     async def reloadDevices(self):
         """load devices for each smart home"""
-        for y in range(len(self._smartHomeData)):
-            devices = await self.loadDevices(self._smartHomeData[str(y)]['smarthome_id'])
-            self._smartHomeData[str(y)]['devices'] = devices
+        if self._smartHomeData is not None:
+            for y in range(len(self._smartHomeData)):
+                devices = await self.loadDevices(self._smartHomeData[str(y)]['smarthome_id'])
+                self._smartHomeData[str(y)]['devices'] = devices
 
         return True
     
@@ -148,7 +152,7 @@ class WattsApi:
         """Get smarthomes"""
         return self._smartHomeData
     
-    async def getDevice(self, smarthome: str, deviceId: str, firstTry: bool = True):
+    async def getDevice(self, smarthome: str, deviceId: str):
         """Get specific device"""
         for y in range(len(self._smartHomeData)):
             if self._smartHomeData[str(y)]['smarthome_id'] == smarthome:
@@ -157,3 +161,115 @@ class WattsApi:
                         return self._smartHomeData[str(y)]['devices'][str(x)]
         
         return None
+
+    async def pushTemperature(self, smarthome:str, deviceID: str, value: str, gvMode: str, firstTry: bool = True):
+        headers = { 
+            'Authorization': 'Bearer {}'.format(self._token) 
+        }
+        payload = {}
+        if gvMode == '0':
+            payload = {
+                'token': 'true', 
+                'context': '1', 
+                'smarthome_id': smarthome, 
+                'query[id_device]': deviceID, 
+                'query[time_boost]': '0', 
+                'query[consigne_confort]': value, 
+                'query[consigne_manuel]': value, 
+                'query[gv_mode]': gvMode, 
+                'query[nv_mode]': gvMode, 
+                'peremption': '15000', 
+                'lang': 'nl_NL'
+            }
+        if gvMode == '1':
+            payload = {
+                'token': 'true', 
+                'context': '1', 
+                'smarthome_id': smarthome, 
+                'query[id_device]': deviceID, 
+                'query[time_boost]': '0', 
+                'query[consigne_manuel]': '0', 
+                'query[gv_mode]': gvMode, 
+                'query[nv_mode]': gvMode, 
+                'peremption': '15000', 
+                'lang': 'nl_NL'
+            }
+        if gvMode == '2':
+            payload = {
+                'token': 'true', 
+                'context': '1', 
+                'smarthome_id': smarthome, 
+                'query[id_device]': deviceID, 
+                'query[time_boost]': '0', 
+                'query[consigne_hg]': '446', 
+                'query[consigne_manuel]': '446', 
+                'query[gv_mode]': gvMode, 
+                'query[nv_mode]': gvMode, 
+                'peremption': '20000', 
+                'lang': 'nl_NL'
+            }
+        if gvMode == '3':
+            payload = {
+                'token': 'true', 
+                'context': '1', 
+                'smarthome_id': smarthome, 
+                'query[id_device]': deviceID, 
+                'query[time_boost]': '0', 
+                'query[consigne_eco]': value, 
+                'query[consigne_manuel]': value, 
+                'query[gv_mode]': gvMode, 
+                'query[nv_mode]': gvMode, 
+                'peremption': '15000', 
+                'lang': 'nl_NL'
+            }
+        if gvMode == '4':
+            payload = {
+                'token': 'true', 
+                'context': '1', 
+                'smarthome_id': smarthome, 
+                'query[id_device]': deviceID, 
+                'query[time_boost]': '7200', 
+                'query[consigne_boost]': value, 
+                'query[consigne_manuel]': value, 
+                'query[gv_mode]': gvMode, 
+                'query[nv_mode]': gvMode, 
+                'peremption': '15000', 
+                'lang': 'nl_NL'
+            }
+        if gvMode == '11':
+            payload = {
+                'token': 'true', 
+                'context': '1', 
+                'smarthome_id': smarthome, 
+                'query[id_device]': deviceID, 
+                'query[time_boost]': '0',
+                'query[gv_mode]': gvMode, 
+                'query[nv_mode]': gvMode, 
+                'query[consigne_manuel]': value,
+                'peremption': '15000', 
+                'lang': 'nl_NL'
+            }
+        
+        func = functools.partial(
+            requests.post,
+            url = 'https://smarthome.wattselectronics.com/api/v0.1/human/query/push/',
+            headers = headers, 
+            data = payload
+        )
+
+        push_result = await self._hass.async_add_executor_job(func)
+
+        if push_result.status_code == 200:
+            if push_result.json()['code']['key'] == 'OK_SET' and push_result.json()['code']['value'] == 'Insert / update success':
+                return True
+            else:
+                if firstTry:
+                    # Token may be expired, try to fetch new token
+                    token = await self.getLoginToken()
+                    return await self.pushTemperature(smarthome, deviceID, value, gvMode, firstTry=False)
+                else:
+                    _LOGGER.error("Something went wrong updating the device. Code: {0}, Key: {1}, Value: {2}, Data: {3}".format(push_result.json()['code']['code'], push_result.json()['code']['key'], push_result.json()['code']['value'], push_result.json()['data']))
+                    return False
+        else:
+            _LOGGER.error("Something went wrong updating the device: {0}".format(push_result.status_code))
+            return False
