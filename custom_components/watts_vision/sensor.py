@@ -26,30 +26,30 @@ async def async_setup_platform(
 ) -> None:
     """Set up the sensor platform."""
 
-    wattsClient = hass.data[DOMAIN]['api']
+    wattsClient: WattsApi = hass.data[DOMAIN]['api']
     
     smartHomes = wattsClient.getSmartHomes()
 
     sensors = []
 
-    for y in range(len(smartHomes)):
-        for x in range(len(smartHomes[str(y)]['devices'])):
-            sensors.append(WattsVisionThermostatSensor(wattsClient, smartHomes[str(y)]['smarthome_id'], smartHomes[str(y)]['devices'][str(x)]['id']))
-            sensors.append(WattsVisionTemperatureSensor(wattsClient, smartHomes[str(y)]['smarthome_id'], smartHomes[str(y)]['devices'][str(x)]['id']))
-            sensors.append(WattsVisionSetTemperatureSensor(wattsClient, smartHomes[str(y)]['smarthome_id'], smartHomes[str(y)]['devices'][str(x)]['id']))
+    if smartHomes is not None:
+        for y in range(len(smartHomes)):
+            if smartHomes[str(y)]['devices'] is not None:
+                for x in range(len(smartHomes[str(y)]['devices'])):
+                    sensors.append(WattsVisionThermostatSensor(wattsClient, smartHomes[str(y)]['smarthome_id'], smartHomes[str(y)]['devices'][str(x)]['id']))
+                    sensors.append(WattsVisionTemperatureSensor(wattsClient, smartHomes[str(y)]['smarthome_id'], smartHomes[str(y)]['devices'][str(x)]['id']))
+                    sensors.append(WattsVisionSetTemperatureSensor(wattsClient, smartHomes[str(y)]['smarthome_id'], smartHomes[str(y)]['devices'][str(x)]['id']))
 
     async_add_entities(sensors, update_before_add=True)
 
-
-#class WattsVisionThermostatSensor(Entity):
 class WattsVisionThermostatSensor(SensorEntity):
     """Representation of a Watts Vision thermostat."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, deviceID: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
-        self.deviceID = deviceID
+        self.id = id
         self._name = "watts_thermostat"
         self._state = None
         self._available = True
@@ -57,12 +57,16 @@ class WattsVisionThermostatSensor(SensorEntity):
     @property
     def name(self) -> str:
         """Return the name of the entity."""
-        return self._name + '_' + self.deviceID
+        return self._name
 
     @property
     def unique_id(self) -> str:
         """Return the unique ID of the sensor."""
-        return 'thermostat_' + self.deviceID
+        return "thermostat_mode_" + self.id
+    
+    @property
+    def device_id(self) -> str:
+        return "watts_vision_watts_thermostat_" + self.id
     
     @property
     def available(self) -> bool:
@@ -75,7 +79,7 @@ class WattsVisionThermostatSensor(SensorEntity):
     
     async def async_update(self):
         try:
-            smartHomeDevice = await self.client.getDevice(self.smartHome, self.deviceID)
+            smartHomeDevice = await self.client.getDevice(self.smartHome, self.id)
             
             if smartHomeDevice["gv_mode"] == "0":
                 self._state = "Comfort"
@@ -97,11 +101,11 @@ class WattsVisionThermostatSensor(SensorEntity):
 class WattsVisionTemperatureSensor(SensorEntity):
     """Representation of a Watts Vision temperature sensor."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, deviceID: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
-        self.deviceID = deviceID
+        self.id = id
         self._name = "watts_vision_"
         self._state = None
         self._available = True
@@ -109,12 +113,16 @@ class WattsVisionTemperatureSensor(SensorEntity):
     @property
     def name(self) -> str:
         """Return the name of the entity."""
-        return self._name + 'temperature_' + self.deviceID
+        return self._name + 'air_temperature'
 
     @property
     def unique_id(self) -> str:
         """Return the unique ID of the sensor."""
-        return 'temperature_air_' + self.deviceID
+        return 'temperature_air_' + self.id
+    
+    @property
+    def device_id(self) -> str:
+        return "watts_vision_watts_thermostat_" + self.id
     
     @property
     def available(self) -> bool:
@@ -139,7 +147,7 @@ class WattsVisionTemperatureSensor(SensorEntity):
     
     async def async_update(self):
         try:
-            smartHomeDevice = await self.client.getDevice(self.smartHome, self.deviceID)
+            smartHomeDevice = await self.client.getDevice(self.smartHome, self.id)
             self._state = int(smartHomeDevice["temperature_air"]) / 10
         except:
             self._available = False
@@ -148,11 +156,11 @@ class WattsVisionTemperatureSensor(SensorEntity):
 class WattsVisionSetTemperatureSensor(SensorEntity):
     """Representation of a Watts Vision temperature sensor."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, deviceID: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
-        self.deviceID = deviceID
+        self.id = id
         self._name = "watts_vision_"
         self._state = None
         self._available = True
@@ -160,12 +168,16 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
     @property
     def name(self) -> str:
         """Return the name of the entity."""
-        return self._name + 'set_temperature_' + self.deviceID
+        return self._name + 'set_temperature'
 
     @property
     def unique_id(self) -> str:
         """Return the unique ID of the sensor."""
-        return 'set_temperature_' + self.deviceID
+        return 'target_temperature_' + self.id
+    
+    @property
+    def device_id(self) -> str:
+        return "watts_vision_watts_thermostat_" + self.id
     
     @property
     def available(self) -> bool:
@@ -190,7 +202,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
     
     async def async_update(self):
         try:
-            smartHomeDevice = await self.client.getDevice(self.smartHome, self.deviceID)
+            smartHomeDevice = await self.client.getDevice(self.smartHome, self.id)
 
             if smartHomeDevice["gv_mode"] == "0":
                 self._state = int(smartHomeDevice["consigne_confort"]) / 10
