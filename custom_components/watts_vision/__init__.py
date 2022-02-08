@@ -7,13 +7,14 @@ import voluptuous as vol
 from homeassistant.const import (
     CONF_PASSWORD,
     CONF_USERNAME,
+    Platform
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.discovery import load_platform
 from homeassistant.helpers.event import async_track_time_interval
 
-from custom_components.watts_vision.watts_api import WattsApi
+from .watts_api import WattsApi
 
 from .const import DOMAIN
 
@@ -31,7 +32,14 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
-PLATFORMS = ["binary_sensor", "sensor"]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.CLIMATE]
+
+PRESET_COMPORT = "0"
+PRESET_OFF = "1"
+PRESET_DEFROST = "2"
+PRESET_ECO = "3"
+PRESET_BOOST = "4"
+PRESET_PROGRAM = "11"
 
 SCAN_INTERVAL = timedelta(seconds=120)
 
@@ -41,7 +49,6 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
     client = WattsApi(hass, config[DOMAIN].get(CONF_USERNAME), config[DOMAIN].get(CONF_PASSWORD))
     await client.loadData()
-
     hass.data[DOMAIN]['api'] = client
 
     for platform in PLATFORMS:
@@ -53,11 +60,3 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     async_track_time_interval(hass, refresh_devices, SCAN_INTERVAL)
 
     return True
-
-# from homeassistant import core
-
-
-# async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
-#     """Set up the Watts Vision component."""
-#     # @TODO: Add setup code.
-#     return True
