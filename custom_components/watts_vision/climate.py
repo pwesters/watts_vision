@@ -230,7 +230,38 @@ class WattsThermostat(ClimateEntity):
 
     async def async_set_preset_mode(self, preset_mode):
         """Set new target preset mode."""
-        _LOGGER.warning(preset_mode)
+        if preset_mode != PRESET_OFF:
+            value = str(int(self._attr_extra_state_attributes['consigne_confort'] * 10))
+            if preset_mode == PRESET_DEFROST:
+                value = str(int(self._attr_extra_state_attributes['consigne_hg'] * 10))
+            if preset_mode == PRESET_ECO:
+                value = str(int(self._attr_extra_state_attributes['consigne_eco'] * 10))
+            if preset_mode == PRESET_BOOST:
+                value = str(int(self._attr_extra_state_attributes['consigne_boost'] * 10))
+            if preset_mode == PRESET_PROGRAM:
+                value = str(int(self._attr_extra_state_attributes['consigne_manuel'] * 10))
+            
+            # reloading the devices may take some time, meanwhile set the new values manually
+            for y in range(len(self.client._smartHomeData)):
+                if self.client._smartHomeData[str(y)]['smarthome_id'] == self.smartHome:
+                    for x in range(len(self.client._smartHomeData[str(y)]['devices'])):
+                        if self.client._smartHomeData[str(y)]['devices'][str(x)]['id'] == self.id:
+                            self.client._smartHomeData[str(y)]['devices'][str(x)]['gv_mode'] = PRESET_MODE_REVERSE_MAP[preset_mode]
+                            self.client._smartHomeData[str(y)]['devices'][str(x)]['consigne_manuel'] = value
+
+            await self.client.pushTemperature(self.smartHome, self.deviceID, value, PRESET_MODE_REVERSE_MAP[preset_mode])
+        else:
+            self._attr_extra_state_attributes['previous_gv_mode'] = self._attr_extra_state_attributes['gv_mode']
+            
+            # reloading the devices may take some time, meanwhile set the new values manually
+            for y in range(len(self.client._smartHomeData)):
+                if self.client._smartHomeData[str(y)]['smarthome_id'] == self.smartHome:
+                    for x in range(len(self.client._smartHomeData[str(y)]['devices'])):
+                        if self.client._smartHomeData[str(y)]['devices'][str(x)]['id'] == self.id:
+                            self.client._smartHomeData[str(y)]['devices'][str(x)]['gv_mode'] = PRESET_MODE_REVERSE_MAP[PRESET_OFF]
+                            self.client._smartHomeData[str(y)]['devices'][str(x)]['consigne_manuel'] = '0'
+
+            await self.client.pushTemperature(self.smartHome, self.deviceID, '0', PRESET_MODE_REVERSE_MAP[PRESET_OFF])
     
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
