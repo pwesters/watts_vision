@@ -3,7 +3,6 @@
 # Watts Vision for Home Assistant
 
 These are my first steps in creating an add on for home assistant and learning python. There's a lot left to do, including:
-- Set the mode of the thermostat
 - All the things that aren't default options, like program, stop boost, etc.
 
 I'm learning by doing. Please be kind.
