@@ -92,6 +92,7 @@ class WattsThermostat(ClimateEntity):
         self.deviceID = deviceID
         self._name = "watts_thermostat"
         self._available = True
+        self._attr_extra_state_attributes = { 'previous_gv_mode': '0' }
     
     @property
     def unique_id(self):
@@ -134,8 +135,8 @@ class WattsThermostat(ClimateEntity):
                 self._attr_min_temp = float(smartHomeDevice["min_set_point"]) / 10
                 self._attr_max_temp = float(smartHomeDevice["max_set_point"]) / 10
             else:
-                self._attr_min_temp = float(446)
-                self._attr_max_temp = float(446)
+                self._attr_min_temp = float(446 / 10)
+                self._attr_max_temp = float(446 / 10)
 
             if smartHomeDevice["heating_up"] == '0':
                 if smartHomeDevice["gv_mode"] == "1":
@@ -152,7 +153,7 @@ class WattsThermostat(ClimateEntity):
             if smartHomeDevice["gv_mode"] == "1":
                 self._attr_hvac_mode = HVAC_MODE_OFF
                 self._attr_preset_mode = PRESET_MODE_MAP["1"]
-                self._attr_target_temperature = NaN
+                self._attr_target_temperature = None
             if smartHomeDevice["gv_mode"] == "2":
                 self._attr_hvac_mode = HVAC_MODE_HEAT
                 self._attr_preset_mode = PRESET_MODE_MAP["2"]
@@ -169,6 +170,13 @@ class WattsThermostat(ClimateEntity):
                 self._attr_hvac_mode = HVAC_MODE_HEAT
                 self._attr_preset_mode = PRESET_MODE_MAP["11"]
                 self._attr_target_temperature = float(smartHomeDevice["consigne_manuel"]) / 10
+
+            self._attr_extra_state_attributes['consigne_confort'] = float(smartHomeDevice["consigne_confort"]) / 10
+            self._attr_extra_state_attributes['consigne_hg'] = float(smartHomeDevice["consigne_hg"]) / 10
+            self._attr_extra_state_attributes['consigne_eco'] = float(smartHomeDevice["consigne_eco"]) / 10
+            self._attr_extra_state_attributes['consigne_boost'] = float(smartHomeDevice["consigne_boost"]) / 10
+            self._attr_extra_state_attributes['consigne_manuel'] = float(smartHomeDevice["consigne_manuel"]) / 10
+            self._attr_extra_state_attributes['gv_mode'] = smartHomeDevice["gv_mode"]
             
         except:
             self._available = False
@@ -176,7 +184,49 @@ class WattsThermostat(ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
-        _LOGGER.warning(hvac_mode)
+        if hvac_mode == HVAC_MODE_HEAT:
+            value = '0'
+            if self._attr_extra_state_attributes['previous_gv_mode'] == '0':
+                value = str(int(self._attr_extra_state_attributes['consigne_confort'] * 10))
+            if self._attr_extra_state_attributes['previous_gv_mode'] == '2':
+                value = str(int(self._attr_extra_state_attributes['consigne_hg'] * 10))
+            if self._attr_extra_state_attributes['previous_gv_mode'] == '3':
+                value = str(int(self._attr_extra_state_attributes['consigne_eco'] * 10))
+            if self._attr_extra_state_attributes['previous_gv_mode'] == '4':
+                value = str(int(self._attr_extra_state_attributes['consigne_boost'] * 10))
+            if self._attr_extra_state_attributes['previous_gv_mode'] == '11':
+                value = str(int(self._attr_extra_state_attributes['consigne_manuel'] * 10))
+
+            # reloading the devices may take some time, meanwhile set the new values manually
+            for y in range(len(self.client._smartHomeData)):
+                if self.client._smartHomeData[str(y)]['smarthome_id'] == self.smartHome:
+                    for x in range(len(self.client._smartHomeData[str(y)]['devices'])):
+                        if self.client._smartHomeData[str(y)]['devices'][str(x)]['id'] == self.id:
+                            self.client._smartHomeData[str(y)]['devices'][str(x)]['gv_mode'] = self._attr_extra_state_attributes['previous_gv_mode']
+                            self.client._smartHomeData[str(y)]['devices'][str(x)]['consigne_manuel'] = value
+                            if self._attr_extra_state_attributes['previous_gv_mode'] == '0':
+                                self._attr_extra_state_attributes['consigne_confort'] = value
+                            if self._attr_extra_state_attributes['previous_gv_mode'] == '2':
+                                self._attr_extra_state_attributes['consigne_hg'] = value
+                            if self._attr_extra_state_attributes['previous_gv_mode'] == '3':
+                                self._attr_extra_state_attributes['consigne_eco'] = value
+                            if self._attr_extra_state_attributes['previous_gv_mode'] == '4':
+                                self._attr_extra_state_attributes['consigne_boost'] = value
+                            
+            
+            await self.client.pushTemperature(self.smartHome, self.deviceID, value, self._attr_extra_state_attributes['previous_gv_mode'])
+        if hvac_mode == HVAC_MODE_OFF:
+            self._attr_extra_state_attributes['previous_gv_mode'] = self._attr_extra_state_attributes['gv_mode']
+            
+            # reloading the devices may take some time, meanwhile set the new values manually
+            for y in range(len(self.client._smartHomeData)):
+                if self.client._smartHomeData[str(y)]['smarthome_id'] == self.smartHome:
+                    for x in range(len(self.client._smartHomeData[str(y)]['devices'])):
+                        if self.client._smartHomeData[str(y)]['devices'][str(x)]['id'] == self.id:
+                            self.client._smartHomeData[str(y)]['devices'][str(x)]['gv_mode'] = PRESET_MODE_REVERSE_MAP[PRESET_OFF]
+                            self.client._smartHomeData[str(y)]['devices'][str(x)]['consigne_manuel'] = '0'
+
+            await self.client.pushTemperature(self.smartHome, self.deviceID, '0', PRESET_MODE_REVERSE_MAP[PRESET_OFF])
 
     async def async_set_preset_mode(self, preset_mode):
         """Set new target preset mode."""
