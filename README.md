@@ -1,3 +1,5 @@
+![GitHub release](https://img.shields.io/github/release/pwesters/watts_vision.svg)
+
 # Watts Vision for Home Assistant
 
 These are my first steps in creating an add on for home assistant and learning python. There's a lot left to do, including:
