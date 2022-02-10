@@ -1,11 +1,10 @@
 from datetime import timedelta
 import logging
-from typing import Callable, Optional
+from typing import Callable
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import (
-    ConfigType,
-    DiscoveryInfoType,
     HomeAssistantType,
 )
 
@@ -17,12 +16,11 @@ _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=120)
 
 
-async def async_setup_platform(
-    hass: HomeAssistantType,
-    config: ConfigType,
-    async_add_entities: Callable,
-    discovery_info: Optional[DiscoveryInfoType] = None,
-) -> None:
+async def async_setup_entry(
+    hass: HomeAssistantType, 
+    config_entry: ConfigEntry, 
+    async_add_entities: Callable
+):
     """Set up the binary_sensor platform."""
     wattsClient: WattsApi = hass.data[DOMAIN]["api"]
 
@@ -83,7 +81,7 @@ class WattsVisionHeatingBinarySensor(BinarySensorEntity):
 
     async def async_update(self):
         # try:
-        smartHomeDevice = await self.client.getDevice(self.smartHome, self.id)
+        smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
         if smartHomeDevice["heating_up"] == "0":
             self._state = False
         else:

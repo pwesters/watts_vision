@@ -4,9 +4,8 @@ import logging
 from typing import Callable, Optional
 
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import (
-    ConfigType,
-    DiscoveryInfoType,
     HomeAssistantType,
 )
 from numpy import NaN
@@ -19,12 +18,11 @@ _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=120)
 
 
-async def async_setup_platform(
-    hass: HomeAssistantType,
-    config: ConfigType,
-    async_add_entities: Callable,
-    discovery_info: Optional[DiscoveryInfoType] = None,
-) -> None:
+async def async_setup_entry(
+    hass: HomeAssistantType, 
+    config_entry: ConfigEntry, 
+    async_add_entities: Callable
+):
     """Set up the sensor platform."""
 
     wattsClient: WattsApi = hass.data[DOMAIN]["api"]
@@ -99,7 +97,7 @@ class WattsVisionThermostatSensor(SensorEntity):
 
     async def async_update(self):
         # try:
-        smartHomeDevice = await self.client.getDevice(self.smartHome, self.id)
+        smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
 
         if smartHomeDevice["gv_mode"] == "0":
             self._state = "Comfort"
@@ -168,7 +166,7 @@ class WattsVisionTemperatureSensor(SensorEntity):
 
     async def async_update(self):
         # try:
-        smartHomeDevice = await self.client.getDevice(self.smartHome, self.id)
+        smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
         self._state = int(smartHomeDevice["temperature_air"]) / 10
         # except:
         #     self._available = False
@@ -224,7 +222,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
 
     async def async_update(self):
         # try:
-        smartHomeDevice = await self.client.getDevice(self.smartHome, self.id)
+        smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
 
         if smartHomeDevice["gv_mode"] == "0":
             self._state = int(smartHomeDevice["consigne_confort"]) / 10

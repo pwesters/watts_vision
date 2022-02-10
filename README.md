@@ -12,12 +12,4 @@ A Watts Vision system Cental unit is required to be able to see the settings rem
 
 ## Installation
 
-Copy the watts_vision folder from custom_components to your custom_components folder of your home assistant instance.
-
-Add the following lines to configuration.yaml
-
-```yaml
-watts_vision:
-  username: [username]
-  password: [password]
-```
+Copy the watts_vision folder from custom_components to your custom_components folder of your home assistant instance, go to devices & services and click on '+ add integration'. In the new window search for Watts Vision and click on it. Fill out the form with your credentials for the watts vision smart home system.

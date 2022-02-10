@@ -14,10 +14,9 @@ from homeassistant.components.climate.const import (
     SUPPORT_PRESET_MODE,
     SUPPORT_TARGET_TEMPERATURE,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import TEMP_FAHRENHEIT
 from homeassistant.helpers.typing import (
-    ConfigType,
-    DiscoveryInfoType,
     HomeAssistantType,
 )
 
@@ -45,12 +44,11 @@ PRESET_MODE_REVERSE_MAP = {
 }
 
 
-async def async_setup_platform(
-    hass: HomeAssistantType,
-    config: ConfigType,
-    async_add_entities: Callable,
-    discovery_info: Optional[DiscoveryInfoType] = None,
-) -> None:
+async def async_setup_entry(
+    hass: HomeAssistantType, 
+    config_entry: ConfigEntry, 
+    async_add_entities: Callable
+):
     """Set up the climate platform."""
 
     wattsClient: WattsApi = hass.data[DOMAIN]["api"]
@@ -117,7 +115,7 @@ class WattsThermostat(ClimateEntity):
 
     async def async_update(self):
         # try:
-        smartHomeDevice = await self.client.getDevice(self.smartHome, self.id)
+        smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
 
         self._attr_current_temperature = float(smartHomeDevice["temperature_air"]) / 10
         if smartHomeDevice["gv_mode"] != "2":

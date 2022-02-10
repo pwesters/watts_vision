@@ -1,4 +1,3 @@
-import functools
 import logging
 
 from homeassistant.helpers.typing import HomeAssistantType
@@ -19,16 +18,16 @@ class WattsApi:
         self._refresh_token = None
         self._smartHomeData = {}
 
-    async def test_authentication(self) -> bool:
+    def test_authentication(self) -> bool:
         """Test if we can authenticate with the host."""
-        # try:
-        token = await self.getLoginToken()
-        return token is not None
-        # except:
-        #     _LOGGER.exception("Watts Authentication exception")
-        #     return False
+        try:
+            token = self.getLoginToken()
+            return token is not None
+        except Exception as exception:
+            _LOGGER.exception("Authentication exception " + exception)
+            return False
 
-    async def getLoginToken(self):
+    def getLoginToken(self):
         """Get the login token for the Watts Smarthome API"""
 
         payload = {
@@ -37,18 +36,19 @@ class WattsApi:
             "password": self._password,
             "client_id": "app-front",
         }
-        func = functools.partial(
-            requests.post,
+
+        _LOGGER.debug("Trying to get an access token.")
+        request_token_result = request_token_result = requests.post(
             url="https://smarthome.wattselectronics.com/auth/realms/watts/protocol/openid-connect/token",
             data=payload,
         )
-        _LOGGER.debug("Trying to get an access token.")
-        request_token_result = await self._hass.async_add_executor_job(func)
 
         if request_token_result.status_code == 200:
             _LOGGER.debug("Requesting access token successful")
             token = request_token_result.json()["access_token"]
             self._token = token
+            # Refresh token doesn't seem to bo useful because of
+            # session
             self._refresh_token = request_token_result.json()["refresh_token"]
             return token
         else:
@@ -59,33 +59,29 @@ class WattsApi:
             )
             raise None
 
-    async def loadData(self):
+    def loadData(self):
         """load data from api"""
-        smarthomes = await self.loadSmartHomes()
+        smarthomes = self.loadSmartHomes()
         self._smartHomeData = smarthomes
 
         """load devices for each smart home"""
         if self._smartHomeData is not None:
             for y in range(len(self._smartHomeData)):
-                devices = await self.loadDevices(
-                    self._smartHomeData[str(y)]["smarthome_id"]
-                )
+                devices = self.loadDevices(self._smartHomeData[str(y)]["smarthome_id"])
                 self._smartHomeData[str(y)]["devices"] = devices
 
         return True
 
-    async def loadSmartHomes(self, firstTry: bool = True):
+    def loadSmartHomes(self, firstTry: bool = True):
         """Load the user data"""
         headers = {"Authorization": "Bearer {}".format(self._token)}
         payload = {"token": "true", "email": self._username, "lang": "nl_NL"}
-        func = functools.partial(
-            requests.post,
+
+        user_data_result = requests.post(
             url="https://smarthome.wattselectronics.com/api/v0.1/human/user/read/",
             headers=headers,
             data=payload,
         )
-
-        user_data_result = await self._hass.async_add_executor_job(func)
 
         if user_data_result.status_code == 200:
             if (
@@ -97,8 +93,8 @@ class WattsApi:
             else:
                 if firstTry:
                     # Token may be expired, try to fetch new token
-                    await self.getLoginToken()
-                    return await self.loadSmartHomes(firstTry=False)
+                    self.getLoginToken()
+                    return self.loadSmartHomes(firstTry=False)
                 else:
                     _LOGGER.error(
                         "Something went wrong fetching user data. Code: {0}, Key: {1}, Value: {2}, Data: {3}".format(
@@ -117,19 +113,17 @@ class WattsApi:
             )
             return None
 
-    async def loadDevices(self, smarthome: str, firstTry: bool = True):
+    def loadDevices(self, smarthome: str, firstTry: bool = True):
         """Load devices for smart home"""
 
         headers = {"Authorization": "Bearer {}".format(self._token)}
         payload = {"token": "true", "smarthome_id": smarthome, "lang": "nl_NL"}
-        func = functools.partial(
-            requests.post,
+
+        devices_result = requests.post(
             url="https://smarthome.wattselectronics.com/api/v0.1/human/smarthome/read",
             headers=headers,
             data=payload,
         )
-
-        devices_result = await self._hass.async_add_executor_job(func)
 
         if devices_result.status_code == 200:
             if (
@@ -141,8 +135,8 @@ class WattsApi:
             else:
                 if firstTry:
                     # Token may be expired, try to fetch new token
-                    await self.getLoginToken()
-                    return await self.loadDevices(smarthome, firstTry=False)
+                    self.getLoginToken()
+                    return self.loadDevices(smarthome, firstTry=False)
                 else:
                     _LOGGER.error(
                         "Something went wrong fetching user data. Code: {0}, Key: {1}, Value: {2}, Data: {3}".format(
@@ -161,13 +155,11 @@ class WattsApi:
             )
             return None
 
-    async def reloadDevices(self):
+    def reloadDevices(self):
         """load devices for each smart home"""
         if self._smartHomeData is not None:
             for y in range(len(self._smartHomeData)):
-                devices = await self.loadDevices(
-                    self._smartHomeData[str(y)]["smarthome_id"]
-                )
+                devices = self.loadDevices(self._smartHomeData[str(y)]["smarthome_id"])
                 self._smartHomeData[str(y)]["devices"] = devices
 
         return True
@@ -176,7 +168,7 @@ class WattsApi:
         """Get smarthomes"""
         return self._smartHomeData
 
-    async def getDevice(self, smarthome: str, deviceId: str):
+    def getDevice(self, smarthome: str, deviceId: str):
         """Get specific device"""
         for y in range(len(self._smartHomeData)):
             if self._smartHomeData[str(y)]["smarthome_id"] == smarthome:
@@ -186,7 +178,7 @@ class WattsApi:
 
         return None
 
-    async def pushTemperature(
+    def pushTemperature(
         self,
         smarthome: str,
         deviceID: str,
@@ -279,14 +271,11 @@ class WattsApi:
                 "lang": "nl_NL",
             }
 
-        func = functools.partial(
-            requests.post,
+        push_result = requests.post(
             url="https://smarthome.wattselectronics.com/api/v0.1/human/query/push/",
             headers=headers,
             data=payload,
         )
-
-        push_result = await self._hass.async_add_executor_job(func)
 
         if push_result.status_code == 200:
             if (
@@ -297,8 +286,8 @@ class WattsApi:
             else:
                 if firstTry:
                     # Token may be expired, try to fetch new token
-                    await self.getLoginToken()
-                    return await self.pushTemperature(
+                    self.getLoginToken()
+                    return self.pushTemperature(
                         smarthome, deviceID, value, gvMode, firstTry=False
                     )
                 else:
