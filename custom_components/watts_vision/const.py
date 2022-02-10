@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-DOMAIN = "wattsvision"
+DOMAIN = "watts_vision"
 
 PRESET_DEFROST = "Frost Protection"
 PRESET_OFF = "Off"
