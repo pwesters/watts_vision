@@ -17,8 +17,8 @@ SCAN_INTERVAL = timedelta(seconds=120)
 
 
 async def async_setup_entry(
-    hass: HomeAssistantType, 
-    config_entry: ConfigEntry, 
+    hass: HomeAssistantType,
+    config_entry: ConfigEntry,
     async_add_entities: Callable
 ):
     """Set up the binary_sensor platform."""
@@ -78,6 +78,18 @@ class WattsVisionHeatingBinarySensor(BinarySensorEntity):
     def is_on(self):
         """Return the state of the sensor."""
         return self._state
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                # Serial numbers are unique identifiers within a specific domain
+                (DOMAIN, self.id)
+            },
+            "manufacturer": "Watts",
+            "name": "Thermostat",
+            "model": "BT-D03-RF",
+        }
 
     async def async_update(self):
         # try:

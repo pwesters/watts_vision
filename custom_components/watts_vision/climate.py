@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Optional
+from typing import Callable
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
@@ -45,8 +45,8 @@ PRESET_MODE_REVERSE_MAP = {
 
 
 async def async_setup_entry(
-    hass: HomeAssistantType, 
-    config_entry: ConfigEntry, 
+    hass: HomeAssistantType,
+    config_entry: ConfigEntry,
     async_add_entities: Callable
 ):
     """Set up the climate platform."""
@@ -112,6 +112,18 @@ class WattsThermostat(ClimateEntity):
         modes.append(PRESET_MODE_MAP["4"])
         modes.append(PRESET_MODE_MAP["11"])
         return modes
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                # Serial numbers are unique identifiers within a specific domain
+                (DOMAIN, self.id)
+            },
+            "manufacturer": "Watts",
+            "name": "Thermostat",
+            "model": "BT-D03-RF",
+        }
 
     async def async_update(self):
         # try:
