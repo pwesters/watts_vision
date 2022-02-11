@@ -73,27 +73,9 @@ class WattsVisionThermostatSensor(SensorEntity):
         self._available = True
 
     @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name
-
-    @property
     def unique_id(self) -> str:
         """Return the unique ID of the sensor."""
         return "thermostat_mode_" + self.id
-
-    @property
-    def device_id(self) -> str:
-        return "watts_vision_watts_thermostat_" + self.id
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return self._available
-
-    @property
-    def state(self) -> Optional[str]:
-        return self._state
 
     @property
     def device_info(self):
@@ -137,32 +119,14 @@ class WattsVisionTemperatureSensor(SensorEntity):
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "watts_vision_"
+        self._name = "watts_vision_air_temperature"
         self._state = None
         self._available = True
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name + "air_temperature"
 
     @property
     def unique_id(self) -> str:
         """Return the unique ID of the sensor."""
         return "temperature_air_" + self.id
-
-    @property
-    def device_id(self) -> str:
-        return "watts_vision_watts_thermostat_" + self.id
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return self._available
-
-    @property
-    def state(self) -> Optional[str]:
-        return self._state
 
     @property
     def device_class(self):
@@ -205,32 +169,14 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "watts_vision_"
+        self._name = "watts_vision_target_temperature"
         self._state = None
         self._available = True
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name + "set_temperature"
 
     @property
     def unique_id(self) -> str:
         """Return the unique ID of the sensor."""
         return "target_temperature_" + self.id
-
-    @property
-    def device_id(self) -> str:
-        return "watts_vision_watts_thermostat_" + self.id
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return self._available
-
-    @property
-    def state(self) -> Optional[str]:
-        return self._state
 
     @property
     def device_class(self):

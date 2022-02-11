@@ -51,33 +51,14 @@ class WattsVisionHeatingBinarySensor(BinarySensorEntity):
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "watts_vision_"
+        self._name = "watts_vision_is_heating"
         self._state: bool = False
         self._available = True
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name + "is_heating"
 
     @property
     def unique_id(self) -> str:
         """Return the unique ID of the sensor."""
         return "thermostat_is_heating_" + self.id
-
-    @property
-    def device_id(self) -> str:
-        return "watts_vision_watts_thermostat_" + self.id
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return self._available
-
-    @property
-    def is_on(self):
-        """Return the state of the sensor."""
-        return self._state
 
     @property
     def device_info(self):
