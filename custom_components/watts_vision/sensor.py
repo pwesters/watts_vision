@@ -1,7 +1,7 @@
 """Watts Vision sensor platform."""
 from datetime import timedelta
 import logging
-from typing import Callable, Optional
+from typing import Callable
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry

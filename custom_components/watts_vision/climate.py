@@ -1,3 +1,4 @@
+import functools
 import logging
 from typing import Callable
 
@@ -259,12 +260,15 @@ class WattsThermostat(ClimateEntity):
                                     "consigne_boost"
                                 ] = value
 
-            await self.client.pushTemperature(
+            func = functools.partial(
+                self.client.pushTemperature,
                 self.smartHome,
                 self.deviceID,
                 value,
-                self._attr_extra_state_attributes["previous_gv_mode"],
+                self._attr_extra_state_attributes["previous_gv_mode"]
             )
+            await self.hass.async_add_executor_job(func)
+
         if hvac_mode == HVAC_MODE_OFF:
             self._attr_extra_state_attributes[
                 "previous_gv_mode"
@@ -285,9 +289,14 @@ class WattsThermostat(ClimateEntity):
                                 "consigne_manuel"
                             ] = "0"
 
-            await self.client.pushTemperature(
-                self.smartHome, self.deviceID, "0", PRESET_MODE_REVERSE_MAP[PRESET_OFF]
+            func = functools.partial(
+                self.client.pushTemperature,
+                self.smartHome,
+                self.deviceID,
+                "0",
+                PRESET_MODE_REVERSE_MAP[PRESET_OFF]
             )
+            await self.hass.async_add_executor_job(func)
 
     async def async_set_preset_mode(self, preset_mode):
         """Set new target preset mode."""
@@ -321,12 +330,14 @@ class WattsThermostat(ClimateEntity):
                                 "consigne_manuel"
                             ] = value
 
-            await self.client.pushTemperature(
+            func = functools.partial(
+                self.client.pushTemperature,
                 self.smartHome,
                 self.deviceID,
                 value,
-                PRESET_MODE_REVERSE_MAP[preset_mode],
+                PRESET_MODE_REVERSE_MAP[preset_mode]
             )
+            await self.hass.async_add_executor_job(func)
         else:
             self._attr_extra_state_attributes[
                 "previous_gv_mode"
@@ -347,12 +358,26 @@ class WattsThermostat(ClimateEntity):
                                 "consigne_manuel"
                             ] = "0"
 
-            await self.client.pushTemperature(
-                self.smartHome, self.deviceID, "0", PRESET_MODE_REVERSE_MAP[PRESET_OFF]
+            func = functools.partial(
+                self.client.pushTemperature,
+                self.smartHome,
+                self.deviceID,
+                "0",
+                PRESET_MODE_REVERSE_MAP[PRESET_OFF]
             )
+            await self.hass.async_add_executor_job(func)
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
         value = str(int(kwargs["temperature"] * 10))
         gvMode = PRESET_MODE_REVERSE_MAP[self._attr_preset_mode]
-        await self.client.pushTemperature(self.smartHome, self.deviceID, value, gvMode)
+
+        func = functools.partial(
+            self.client.pushTemperature,
+            self.smartHome,
+            self.deviceID,
+            value,
+            gvMode
+        )
+
+        await self.hass.async_add_executor_job(func)
