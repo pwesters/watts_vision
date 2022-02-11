@@ -81,7 +81,7 @@ class WattsThermostat(ClimateEntity):
         self.smartHome = smartHome
         self.id = id
         self.deviceID = deviceID
-        self._name = "watts_thermostat"
+        self._name = "Thermostat"
         self._available = True
         self._attr_extra_state_attributes = {"previous_gv_mode": "0"}
 
@@ -89,6 +89,11 @@ class WattsThermostat(ClimateEntity):
     def unique_id(self):
         """Return the unique ID for this device."""
         return "watts_thermostat_" + self.id
+
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        return self._name
 
     @property
     def supported_features(self):

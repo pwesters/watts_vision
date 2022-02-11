@@ -1,7 +1,7 @@
 """Watts Vision sensor platform."""
 from datetime import timedelta
 import logging
-from typing import Callable
+from typing import Callable, Optional
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -68,7 +68,7 @@ class WattsVisionThermostatSensor(SensorEntity):
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "watts_thermostat"
+        self._name = "Heating mode"
         self._state = None
         self._available = True
 
@@ -76,6 +76,15 @@ class WattsVisionThermostatSensor(SensorEntity):
     def unique_id(self) -> str:
         """Return the unique ID of the sensor."""
         return "thermostat_mode_" + self.id
+
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        return self._name
+
+    @property
+    def state(self) -> Optional[str]:
+        return self._state
 
     @property
     def device_info(self):
@@ -119,7 +128,7 @@ class WattsVisionTemperatureSensor(SensorEntity):
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "watts_vision_air_temperature"
+        self._name = "Air temperature"
         self._state = None
         self._available = True
 
@@ -127,6 +136,15 @@ class WattsVisionTemperatureSensor(SensorEntity):
     def unique_id(self) -> str:
         """Return the unique ID of the sensor."""
         return "temperature_air_" + self.id
+
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        return self._name
+
+    @property
+    def state(self) -> Optional[str]:
+        return self._state
 
     @property
     def device_class(self):
@@ -169,7 +187,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "watts_vision_target_temperature"
+        self._name = "Target temperature"
         self._state = None
         self._available = True
 
@@ -177,6 +195,15 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
     def unique_id(self) -> str:
         """Return the unique ID of the sensor."""
         return "target_temperature_" + self.id
+
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        return self._name
+
+    @property
+    def state(self) -> Optional[str]:
+        return self._state
 
     @property
     def device_class(self):
