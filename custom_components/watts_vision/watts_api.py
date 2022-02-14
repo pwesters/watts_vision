@@ -53,7 +53,7 @@ class WattsApi:
             return token
         else:
             _LOGGER.error(
-                "Something went wrong fetching token: {0}".format(
+                "Something went wrong fetching token: {}".format(
                     request_token_result.status_code
                 )
             )
@@ -74,7 +74,7 @@ class WattsApi:
 
     def loadSmartHomes(self, firstTry: bool = True):
         """Load the user data"""
-        headers = {"Authorization": "Bearer {}".format(self._token)}
+        headers = {"Authorization": f"Bearer {self._token}"}
         payload = {"token": "true", "email": self._username, "lang": "nl_NL"}
 
         user_data_result = requests.post(
@@ -97,7 +97,7 @@ class WattsApi:
                     return self.loadSmartHomes(firstTry=False)
                 else:
                     _LOGGER.error(
-                        "Something went wrong fetching user data. Code: {0}, Key: {1}, Value: {2}, Data: {3}".format(
+                        "Something went wrong fetching user data. Code: {}, Key: {}, Value: {}, Data: {}".format(
                             user_data_result.json()["code"]["code"],
                             user_data_result.json()["code"]["key"],
                             user_data_result.json()["code"]["value"],
@@ -107,7 +107,7 @@ class WattsApi:
                     return None
         else:
             _LOGGER.error(
-                "Something went wrong fetching user data: {0}".format(
+                "Something went wrong fetching user data: {}".format(
                     user_data_result.status_code
                 )
             )
@@ -116,7 +116,7 @@ class WattsApi:
     def loadDevices(self, smarthome: str, firstTry: bool = True):
         """Load devices for smart home"""
 
-        headers = {"Authorization": "Bearer {}".format(self._token)}
+        headers = {"Authorization": f"Bearer {self._token}"}
         payload = {"token": "true", "smarthome_id": smarthome, "lang": "nl_NL"}
 
         devices_result = requests.post(
@@ -139,7 +139,7 @@ class WattsApi:
                     return self.loadDevices(smarthome, firstTry=False)
                 else:
                     _LOGGER.error(
-                        "Something went wrong fetching user data. Code: {0}, Key: {1}, Value: {2}, Data: {3}".format(
+                        "Something went wrong fetching user data. Code: {}, Key: {}, Value: {}, Data: {}".format(
                             devices_result.json()["code"]["code"],
                             devices_result.json()["code"]["key"],
                             devices_result.json()["code"]["value"],
@@ -149,7 +149,7 @@ class WattsApi:
                     return None
         else:
             _LOGGER.error(
-                "Something went wrong fetching devices: {0}".format(
+                "Something went wrong fetching devices: {}".format(
                     devices_result.status_code
                 )
             )
@@ -186,7 +186,7 @@ class WattsApi:
         gvMode: str,
         firstTry: bool = True,
     ):
-        headers = {"Authorization": "Bearer {}".format(self._token)}
+        headers = {"Authorization": f"Bearer {self._token}"}
         payload = {}
         if gvMode == "0":
             payload = {
@@ -292,7 +292,7 @@ class WattsApi:
                     )
                 else:
                     _LOGGER.error(
-                        "Something went wrong updating the device. Code: {0}, Key: {1}, Value: {2}, Data: {3}".format(
+                        "Something went wrong updating the device. Code: {}, Key: {}, Value: {}, Data: {}".format(
                             push_result.json()["code"]["code"],
                             push_result.json()["code"]["key"],
                             push_result.json()["code"]["value"],
@@ -302,14 +302,14 @@ class WattsApi:
                     return False
         else:
             _LOGGER.error(
-                "Something went wrong updating the device: {0}".format(
+                "Something went wrong updating the device: {}".format(
                     push_result.status_code
                 )
             )
             return False
 
     def getLastCommunication(self, smarthome: str, firstTry: bool = True):
-        headers = {"Authorization": "Bearer {}".format(self._token)}
+        headers = {"Authorization": f"Bearer {self._token}"}
         payload = {
             "token": "true",
             "smarthome_id": smarthome,
@@ -336,7 +336,7 @@ class WattsApi:
                     return self.getLastCommunication(smarthome, firstTry=False)
                 else:
                     _LOGGER.error(
-                        "Something went wrong fetching user data. Code: {0}, Key: {1}, Value: {2}, Data: {3}".format(
+                        "Something went wrong fetching user data. Code: {}, Key: {}, Value: {}, Data: {}".format(
                             last_connection_result.json()["code"]["code"],
                             last_connection_result.json()["code"]["key"],
                             last_connection_result.json()["code"]["value"],
@@ -346,7 +346,7 @@ class WattsApi:
                     return None
         else:
             _LOGGER.error(
-                "Something went wrong fetching devices: {0}".format(
+                "Something went wrong fetching devices: {}".format(
                     last_connection_result.status_code
                 )
             )

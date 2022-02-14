@@ -5,9 +5,7 @@ from typing import Callable, Optional
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import (
-    HomeAssistantType,
-)
+from homeassistant.helpers.typing import HomeAssistantType
 from numpy import NaN
 
 from .const import DOMAIN
@@ -295,7 +293,7 @@ class WattsVisionLastCommunicationSensor(SensorEntity):
     async def async_update(self):
         data = await self.hass.async_add_executor_job(self.client.getLastCommunication, self.smartHome)
 
-        self._state = "{0} days, {1} hours, {2} minutes and {3} seconds.".format(
+        self._state = "{} days, {} hours, {} minutes and {} seconds.".format(
             data["diffObj"]["days"],
             data["diffObj"]["hours"],
             data["diffObj"]["minutes"],

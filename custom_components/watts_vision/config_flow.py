@@ -1,11 +1,11 @@
 import logging
 from typing import Any
-import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, CONN_CLASS_CLOUD_POLL
+from homeassistant.config_entries import CONN_CLASS_CLOUD_POLL, ConfigFlow
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+import voluptuous as vol
 
 from .const import DOMAIN
 from .watts_api import WattsApi

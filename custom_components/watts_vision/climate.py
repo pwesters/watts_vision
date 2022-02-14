@@ -17,9 +17,7 @@ from homeassistant.components.climate.const import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import TEMP_FAHRENHEIT
-from homeassistant.helpers.typing import (
-    HomeAssistantType,
-)
+from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import DOMAIN, PRESET_DEFROST, PRESET_OFF, PRESET_PROGRAM
 from .watts_api import WattsApi

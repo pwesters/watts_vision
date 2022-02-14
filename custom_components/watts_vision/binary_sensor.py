@@ -4,9 +4,7 @@ from typing import Callable
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import (
-    HomeAssistantType,
-)
+from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import DOMAIN
 from .watts_api import WattsApi
