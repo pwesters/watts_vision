@@ -3,9 +3,10 @@
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/pwesters/watts_vision",
+  "issue_tracker": "https://github.com/pwesters/watts_vision/issues",
   "domain": "watts_vision",
   "iot_class": "cloud_polling",
   "name": "Watts Vision",
   "requirements": [],
-  "version": "0.2.2"
+  "version": "0.2.3"
 }
