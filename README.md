@@ -1,4 +1,4 @@
-![GitHub release](https://img.shields.io/github/release/pwesters/watts_vision.svg)
+![GitHub release](https://img.shields.io/github/release/pwesters/watts_vision.svg) [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
 # Watts Vision for Home Assistant
 
