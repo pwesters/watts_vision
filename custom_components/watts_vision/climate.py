@@ -100,12 +100,20 @@ class WattsThermostat(ClimateEntity):
         return SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
 
     @property
-    def temperature_unit(self):
+    def temperature_unit(self) -> str:
         return TEMP_FAHRENHEIT
 
     @property
-    def hvac_modes(self):
+    def hvac_modes(self) -> list[str]:
         return [HVAC_MODE_HEAT] + [HVAC_MODE_OFF]
+
+    @property
+    def hvac_mode(self) -> str:
+        return self._attr_hvac_mode
+
+    @property
+    def hvac_action(self) -> str:
+        return self._attr_hvac_action
 
     @property
     def preset_modes(self) -> list[str]:
@@ -118,6 +126,10 @@ class WattsThermostat(ClimateEntity):
         modes.append(PRESET_MODE_MAP["4"])
         modes.append(PRESET_MODE_MAP["11"])
         return modes
+
+    @property
+    def preset_mode(self) -> str:
+        return self._attr_preset_mode
 
     @property
     def device_info(self):

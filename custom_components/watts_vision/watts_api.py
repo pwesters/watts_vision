@@ -307,3 +307,47 @@ class WattsApi:
                 )
             )
             return False
+
+    def getLastCommunication(self, smarthome: str, firstTry: bool = True):
+        headers = {"Authorization": "Bearer {}".format(self._token)}
+        payload = {
+            "token": "true",
+            "smarthome_id": smarthome,
+            "lang": "nl_NL"
+        }
+
+        last_connection_result = requests.post(
+            url="https://smarthome.wattselectronics.com/api/v0.1/human/sandbox/check_last_connexion/",
+            headers=headers,
+            data=payload,
+        )
+
+        if last_connection_result.status_code == 200:
+            if (
+                last_connection_result.json()["code"]["code"] == "1"
+                and last_connection_result.json()["code"]["key"] == "OK"
+                and last_connection_result.json()["code"]["value"] == "OK"
+            ):
+                return last_connection_result.json()["data"]
+            else:
+                if firstTry:
+                    # Token may be expired, try to fetch new token
+                    self.getLoginToken()
+                    return self.getLastCommunication(smarthome, firstTry=False)
+                else:
+                    _LOGGER.error(
+                        "Something went wrong fetching user data. Code: {0}, Key: {1}, Value: {2}, Data: {3}".format(
+                            last_connection_result.json()["code"]["code"],
+                            last_connection_result.json()["code"]["key"],
+                            last_connection_result.json()["code"]["value"],
+                            last_connection_result.json()["data"],
+                        )
+                    )
+                    return None
+        else:
+            _LOGGER.error(
+                "Something went wrong fetching devices: {0}".format(
+                    last_connection_result.status_code
+                )
+            )
+            return None

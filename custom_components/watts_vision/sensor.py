@@ -56,6 +56,12 @@ async def async_setup_entry(
                             smartHomes[str(y)]["devices"][str(x)]["id"],
                         )
                     )
+            sensors.append(
+                WattsVisionLastCommunicationSensor(
+                    wattsClient,
+                    smartHomes[str(y)]["smarthome_id"]
+                )
+            )
 
     async_add_entities(sensors, update_before_add=True)
 
@@ -249,3 +255,49 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
         # except:
         #     self._available = False
         #     _LOGGER.exception("Error retrieving data.")
+
+
+class WattsVisionLastCommunicationSensor(SensorEntity):
+    def __init__(self, wattsClient: WattsApi, smartHome: str):
+        super().__init__()
+        self.client = wattsClient
+        self.smartHome = smartHome
+        self._name = "Last communication"
+        self._state = None
+        self._available = True
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique ID of the sensor."""
+        return "last_communication_" + self.smartHome
+
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        return self._name
+
+    @property
+    def state(self) -> Optional[str]:
+        return self._state
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                # Serial numbers are unique identifiers within a specific domain
+                (DOMAIN, self.smartHome)
+            },
+            "manufacturer": "Watts",
+            "name": "Central Unit",
+            "model": "BT-CT02-RF",
+        }
+
+    async def async_update(self):
+        data = await self.hass.async_add_executor_job(self.client.getLastCommunication, self.smartHome)
+
+        self._state = "{0} days, {1} hours, {2} minutes and {3} seconds.".format(
+            data["diffObj"]["days"],
+            data["diffObj"]["hours"],
+            data["diffObj"]["minutes"],
+            data["diffObj"]["seconds"]
+        )
