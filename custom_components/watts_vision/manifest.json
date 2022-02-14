@@ -1,5 +1,5 @@
 {
-  "codeowners": ["pwesters"],
+  "codeowners": ["@pwesters"],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/pwesters/watts_vision",
