@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
 from numpy import NaN
 
-from .const import DOMAIN
+from .const import API_CLIENT, DOMAIN
 from .watts_api import WattsApi
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ async def async_setup_entry(
 ):
     """Set up the sensor platform."""
 
-    wattsClient: WattsApi = hass.data[DOMAIN]["api"]
+    wattsClient: WattsApi = hass.data[DOMAIN][API_CLIENT]
 
     smartHomes = wattsClient.getSmartHomes()
 

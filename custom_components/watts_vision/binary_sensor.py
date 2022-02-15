@@ -6,7 +6,7 @@ from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
 
-from .const import DOMAIN
+from .const import API_CLIENT, DOMAIN
 from .watts_api import WattsApi
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ async def async_setup_entry(
     async_add_entities: Callable
 ):
     """Set up the binary_sensor platform."""
-    wattsClient: WattsApi = hass.data[DOMAIN]["api"]
+    wattsClient: WattsApi = hass.data[DOMAIN][API_CLIENT]
 
     smartHomes = wattsClient.getSmartHomes()
 

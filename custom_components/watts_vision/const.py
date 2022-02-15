@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+API_CLIENT = "api"
+
 DOMAIN = "watts_vision"
 
 PRESET_DEFROST = "Frost Protection"

@@ -19,7 +19,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import TEMP_FAHRENHEIT
 from homeassistant.helpers.typing import HomeAssistantType
 
-from .const import DOMAIN, PRESET_DEFROST, PRESET_OFF, PRESET_PROGRAM
+from .const import API_CLIENT, DOMAIN, PRESET_DEFROST, PRESET_OFF, PRESET_PROGRAM
 from .watts_api import WattsApi
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ async def async_setup_entry(
 ):
     """Set up the climate platform."""
 
-    wattsClient: WattsApi = hass.data[DOMAIN]["api"]
+    wattsClient: WattsApi = hass.data[DOMAIN][API_CLIENT]
 
     smartHomes = wattsClient.getSmartHomes()
 

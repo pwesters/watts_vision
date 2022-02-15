@@ -7,7 +7,7 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import async_track_time_interval
 
-from .const import DOMAIN, SCAN_INTERVAL
+from .const import API_CLIENT, DOMAIN, SCAN_INTERVAL
 from .watts_api import WattsApi
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     client = WattsApi(hass, entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD])
     await hass.async_add_executor_job(client.loadData)
 
-    hass.data[DOMAIN]["api"] = client
+    hass.data[DOMAIN][API_CLIENT] = client
 
     for platform in PLATFORMS:
         hass.async_create_task(
