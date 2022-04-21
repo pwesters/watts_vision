@@ -1,10 +1,12 @@
 """Watts Vision sensor platform."""
 from datetime import timedelta
 import logging
+import math
 from typing import Callable, Optional
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.helpers.typing import HomeAssistantType
 from numpy import NaN
 
@@ -152,15 +154,11 @@ class WattsVisionTemperatureSensor(SensorEntity):
 
     @property
     def device_class(self):
-        return "temperature"
+        return SensorDeviceClass.TEMPERATURE
 
     @property
     def native_unit_of_measurement(self):
-        return "°F"
-
-    @property
-    def unit_of_measurement(self):
-        return "°F"
+        return TEMP_FAHRENHEIT
 
     @property
     def device_info(self):
@@ -177,7 +175,10 @@ class WattsVisionTemperatureSensor(SensorEntity):
     async def async_update(self):
         # try:
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
-        self._state = int(smartHomeDevice["temperature_air"]) / 10
+        if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
+            self._state = math.floor(((float(smartHomeDevice["temperature_air"]) / 10) - 32) / 1.8 * 10) / 10
+        else:
+            self._state = float(smartHomeDevice["temperature_air"]) / 10
         # except:
         #     self._available = False
         #     _LOGGER.exception("Error retrieving data.")
@@ -211,15 +212,11 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
 
     @property
     def device_class(self):
-        return "temperature"
+        return SensorDeviceClass.TEMPERATURE
 
     @property
     def native_unit_of_measurement(self):
-        return "°F"
-
-    @property
-    def unit_of_measurement(self):
-        return "°F"
+        return TEMP_FAHRENHEIT
 
     @property
     def device_info(self):
@@ -238,17 +235,32 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
 
         if smartHomeDevice["gv_mode"] == "0":
-            self._state = int(smartHomeDevice["consigne_confort"]) / 10
+            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
+                self._state = math.floor(((float(smartHomeDevice["consigne_confort"]) / 10) - 32) / 1.8 * 10) / 10
+            else: 
+                self._state = float(smartHomeDevice["consigne_confort"]) / 10
         if smartHomeDevice["gv_mode"] == "1":
             self._state = NaN
         if smartHomeDevice["gv_mode"] == "2":
-            self._state = int(smartHomeDevice["consigne_hg"]) / 10
+            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
+                self._state = math.floor(((float(smartHomeDevice["consigne_hg"]) / 10) - 32) / 1.8 * 10) / 10
+            else: 
+                self._state = float(smartHomeDevice["consigne_hg"]) / 10
         if smartHomeDevice["gv_mode"] == "3":
-            self._state = int(smartHomeDevice["consigne_eco"]) / 10
+            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
+                self._state = math.floor(((float(smartHomeDevice["consigne_eco"]) / 10) - 32) / 1.8 * 10) / 10
+            else: 
+                self._state = float(smartHomeDevice["consigne_eco"]) / 10
         if smartHomeDevice["gv_mode"] == "4":
-            self._state = int(smartHomeDevice["consigne_boost"]) / 10
+            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
+                self._state = math.floor(((float(smartHomeDevice["consigne_boost"]) / 10) - 32) / 1.8 * 10) / 10
+            else: 
+                self._state = float(smartHomeDevice["consigne_boost"]) / 10
         if smartHomeDevice["gv_mode"] == "11":
-            self._state = int(smartHomeDevice["consigne_manuel"]) / 10
+            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
+                self._state = math.floor(((float(smartHomeDevice["consigne_manuel"]) / 10) - 32) / 1.8 * 10) / 10
+            else: 
+                self._state = float(smartHomeDevice["consigne_manuel"]) / 10
 
         # except:
         #     self._available = False
