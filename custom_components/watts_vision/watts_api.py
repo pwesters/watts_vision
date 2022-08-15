@@ -67,8 +67,8 @@ class WattsApi:
         """load devices for each smart home"""
         if self._smartHomeData is not None:
             for y in range(len(self._smartHomeData)):
-                devices = self.loadDevices(self._smartHomeData[str(y)]["smarthome_id"])
-                self._smartHomeData[str(y)]["devices"] = devices
+                devices = self.loadDevices(self._smartHomeData[y]["smarthome_id"])
+                self._smartHomeData[y]["devices"] = devices
 
         return True
 
@@ -85,9 +85,9 @@ class WattsApi:
 
         if user_data_result.status_code == 200:
             if (
-                user_data_result.json()["code"]["code"] == "1"
-                and user_data_result.json()["code"]["key"] == "OK"
-                and user_data_result.json()["code"]["value"] == "OK"
+                user_data_result.json()["code"]["code"] == "8"
+                and user_data_result.json()["code"]["key"] == "OK_SET"
+                and user_data_result.json()["code"]["value"] == "Insert / update success"
             ):
                 return user_data_result.json()["data"]["smarthomes"]
             else:
@@ -106,12 +106,25 @@ class WattsApi:
                     )
                     return None
         else:
-            _LOGGER.error(
-                "Something went wrong fetching user data: {}".format(
-                    user_data_result.status_code
+            if user_data_result.status_code == 401:
+                if firstTry:
+                    # Token may be expired, try to fetch new token
+                    self.getLoginToken()
+                    return self.loadSmartHomes(firstTry=False)
+                else:
+                    _LOGGER.error(
+                        "Something went wrong fetching user data: {}".format(
+                            user_data_result.status_code
+                        )
+                    )
+                    return None
+            else: 
+                _LOGGER.error(
+                    "Something went wrong fetching user data: {}".format(
+                        user_data_result.status_code
+                    )
                 )
-            )
-            return None
+                return None
 
     def loadDevices(self, smarthome: str, firstTry: bool = True):
         """Load devices for smart home"""
@@ -148,19 +161,35 @@ class WattsApi:
                     )
                     return None
         else:
-            _LOGGER.error(
-                "Something went wrong fetching devices: {}".format(
-                    devices_result.status_code
+            if devices_result.status_code == 401:
+                if firstTry:
+                    # Token may be expired, try to fetch new token
+                    self.getLoginToken()
+                    return self.loadDevices(smarthome, firstTry=False)
+                else:
+                    _LOGGER.error(
+                        "Something went wrong fetching user data. Code: {}, Key: {}, Value: {}, Data: {}".format(
+                            devices_result.json()["code"]["code"],
+                            devices_result.json()["code"]["key"],
+                            devices_result.json()["code"]["value"],
+                            devices_result.json()["data"],
+                        )
+                    )
+                    return None
+            else:
+                _LOGGER.error(
+                    "Something went wrong fetching devices: {}".format(
+                        devices_result.status_code
+                    )
                 )
-            )
-            return None
+                return None
 
     def reloadDevices(self):
         """load devices for each smart home"""
         if self._smartHomeData is not None:
             for y in range(len(self._smartHomeData)):
-                devices = self.loadDevices(self._smartHomeData[str(y)]["smarthome_id"])
-                self._smartHomeData[str(y)]["devices"] = devices
+                devices = self.loadDevices(self._smartHomeData[y]["smarthome_id"])
+                self._smartHomeData[y]["devices"] = devices
 
         return True
 
@@ -171,10 +200,10 @@ class WattsApi:
     def getDevice(self, smarthome: str, deviceId: str):
         """Get specific device"""
         for y in range(len(self._smartHomeData)):
-            if self._smartHomeData[str(y)]["smarthome_id"] == smarthome:
-                for x in range(len(self._smartHomeData[str(y)]["devices"])):
-                    if self._smartHomeData[str(y)]["devices"][str(x)]["id"] == deviceId:
-                        return self._smartHomeData[str(y)]["devices"][str(x)]
+            if self._smartHomeData[y]["smarthome_id"] == smarthome:
+                for x in range(len(self._smartHomeData[y]["devices"])):
+                    if self._smartHomeData[y]["devices"][x]["id"] == deviceId:
+                        return self._smartHomeData[y]["devices"][x]
 
         return None
 
@@ -301,12 +330,30 @@ class WattsApi:
                     )
                     return False
         else:
-            _LOGGER.error(
-                "Something went wrong updating the device: {}".format(
-                    push_result.status_code
+            if push_result.status_code == 401:
+                if firstTry:
+                    # Token may be expired, try to fetch new token
+                    self.getLoginToken()
+                    return self.pushTemperature(
+                        smarthome, deviceID, value, gvMode, firstTry=False
+                    )
+                else:
+                    _LOGGER.error(
+                        "Something went wrong updating the device. Code: {}, Key: {}, Value: {}, Data: {}".format(
+                            push_result.json()["code"]["code"],
+                            push_result.json()["code"]["key"],
+                            push_result.json()["code"]["value"],
+                            push_result.json()["data"],
+                        )
+                    )
+                    return False
+            else:
+                _LOGGER.error(
+                    "Something went wrong updating the device: {}".format(
+                        push_result.status_code
+                    )
                 )
-            )
-            return False
+                return False
 
     def getLastCommunication(self, smarthome: str, firstTry: bool = True):
         headers = {"Authorization": f"Bearer {self._token}"}
@@ -345,9 +392,25 @@ class WattsApi:
                     )
                     return None
         else:
-            _LOGGER.error(
-                "Something went wrong fetching devices: {}".format(
-                    last_connection_result.status_code
+            if last_connection_result.status_code == 401:
+                if firstTry:
+                    # Token may be expired, try to fetch new token
+                    self.getLoginToken()
+                    return self.getLastCommunication(smarthome, firstTry=False)
+                else:
+                    _LOGGER.error(
+                        "Something went wrong fetching user data. Code: {}, Key: {}, Value: {}, Data: {}".format(
+                            last_connection_result.json()["code"]["code"],
+                            last_connection_result.json()["code"]["key"],
+                            last_connection_result.json()["code"]["value"],
+                            last_connection_result.json()["data"],
+                        )
+                    )
+                    return None
+            else:
+                _LOGGER.error(
+                    "Something went wrong fetching devices: {}".format(
+                        last_connection_result.status_code
+                    )
                 )
-            )
-            return None
+                return None

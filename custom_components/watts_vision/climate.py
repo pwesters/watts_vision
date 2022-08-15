@@ -57,13 +57,13 @@ async def async_setup_entry(
     devices = []
 
     for y in range(len(smartHomes)):
-        for x in range(len(smartHomes[str(y)]["devices"])):
+        for x in range(len(smartHomes[y]["devices"])):
             devices.append(
                 WattsThermostat(
                     wattsClient,
-                    smartHomes[str(y)]["smarthome_id"],
-                    smartHomes[str(y)]["devices"][str(x)]["id"],
-                    smartHomes[str(y)]["devices"][str(x)]["id_device"],
+                    smartHomes[y]["smarthome_id"],
+                    smartHomes[y]["devices"][x]["id"],
+                    smartHomes[y]["devices"][x]["id_device"],
                 )
             )
 
@@ -236,16 +236,16 @@ class WattsThermostat(ClimateEntity):
 
             # reloading the devices may take some time, meanwhile set the new values manually
             for y in range(len(self.client._smartHomeData)):
-                if self.client._smartHomeData[str(y)]["smarthome_id"] == self.smartHome:
-                    for x in range(len(self.client._smartHomeData[str(y)]["devices"])):
+                if self.client._smartHomeData[y]["smarthome_id"] == self.smartHome:
+                    for x in range(len(self.client._smartHomeData[y]["devices"])):
                         if (
-                            self.client._smartHomeData[str(y)]["devices"][str(x)]["id"]
+                            self.client._smartHomeData[y]["devices"][x]["id"]
                             == self.id
                         ):
-                            self.client._smartHomeData[str(y)]["devices"][str(x)][
+                            self.client._smartHomeData[y]["devices"][x][
                                 "gv_mode"
                             ] = self._attr_extra_state_attributes["previous_gv_mode"]
-                            self.client._smartHomeData[str(y)]["devices"][str(x)][
+                            self.client._smartHomeData[y]["devices"][x][
                                 "consigne_manuel"
                             ] = value
                             if (
@@ -291,16 +291,16 @@ class WattsThermostat(ClimateEntity):
 
             # reloading the devices may take some time, meanwhile set the new values manually
             for y in range(len(self.client._smartHomeData)):
-                if self.client._smartHomeData[str(y)]["smarthome_id"] == self.smartHome:
-                    for x in range(len(self.client._smartHomeData[str(y)]["devices"])):
+                if self.client._smartHomeData[y]["smarthome_id"] == self.smartHome:
+                    for x in range(len(self.client._smartHomeData[y]["devices"])):
                         if (
-                            self.client._smartHomeData[str(y)]["devices"][str(x)]["id"]
+                            self.client._smartHomeData[y]["devices"][x]["id"]
                             == self.id
                         ):
-                            self.client._smartHomeData[str(y)]["devices"][str(x)][
+                            self.client._smartHomeData[y]["devices"][x][
                                 "gv_mode"
                             ] = PRESET_MODE_REVERSE_MAP[PRESET_OFF]
-                            self.client._smartHomeData[str(y)]["devices"][str(x)][
+                            self.client._smartHomeData[y]["devices"][x][
                                 "consigne_manuel"
                             ] = "0"
 
@@ -332,16 +332,16 @@ class WattsThermostat(ClimateEntity):
 
             # reloading the devices may take some time, meanwhile set the new values manually
             for y in range(len(self.client._smartHomeData)):
-                if self.client._smartHomeData[str(y)]["smarthome_id"] == self.smartHome:
-                    for x in range(len(self.client._smartHomeData[str(y)]["devices"])):
+                if self.client._smartHomeData[y]["smarthome_id"] == self.smartHome:
+                    for x in range(len(self.client._smartHomeData[y]["devices"])):
                         if (
-                            self.client._smartHomeData[str(y)]["devices"][str(x)]["id"]
+                            self.client._smartHomeData[y]["devices"][x]["id"]
                             == self.id
                         ):
-                            self.client._smartHomeData[str(y)]["devices"][str(x)][
+                            self.client._smartHomeData[y]["devices"][x][
                                 "gv_mode"
                             ] = PRESET_MODE_REVERSE_MAP[preset_mode]
-                            self.client._smartHomeData[str(y)]["devices"][str(x)][
+                            self.client._smartHomeData[y]["devices"][x][
                                 "consigne_manuel"
                             ] = value
 
@@ -360,16 +360,16 @@ class WattsThermostat(ClimateEntity):
 
             # reloading the devices may take some time, meanwhile set the new values manually
             for y in range(len(self.client._smartHomeData)):
-                if self.client._smartHomeData[str(y)]["smarthome_id"] == self.smartHome:
-                    for x in range(len(self.client._smartHomeData[str(y)]["devices"])):
+                if self.client._smartHomeData[y]["smarthome_id"] == self.smartHome:
+                    for x in range(len(self.client._smartHomeData[y]["devices"])):
                         if (
-                            self.client._smartHomeData[str(y)]["devices"][str(x)]["id"]
+                            self.client._smartHomeData[y]["devices"][x]["id"]
                             == self.id
                         ):
-                            self.client._smartHomeData[str(y)]["devices"][str(x)][
+                            self.client._smartHomeData[y]["devices"][x][
                                 "gv_mode"
                             ] = PRESET_MODE_REVERSE_MAP[PRESET_OFF]
-                            self.client._smartHomeData[str(y)]["devices"][str(x)][
+                            self.client._smartHomeData[y]["devices"][x][
                                 "consigne_manuel"
                             ] = "0"
 

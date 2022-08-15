@@ -28,13 +28,13 @@ async def async_setup_entry(
 
     if smartHomes is not None:
         for y in range(len(smartHomes)):
-            if smartHomes[str(y)]["devices"] is not None:
-                for x in range(len(smartHomes[str(y)]["devices"])):
+            if smartHomes[y]["devices"] is not None:
+                for x in range(len(smartHomes[y]["devices"])):
                     sensors.append(
                         WattsVisionHeatingBinarySensor(
                             wattsClient,
-                            smartHomes[str(y)]["smarthome_id"],
-                            smartHomes[str(y)]["devices"][str(x)]["id"],
+                            smartHomes[y]["smarthome_id"],
+                            smartHomes[y]["devices"][x]["id"],
                         )
                     )
 
