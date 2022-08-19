@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import logging
 
 from homeassistant.helpers.typing import HomeAssistantType
@@ -15,9 +16,11 @@ class WattsApi:
         self._username = username
         self._password = password
         self._token = None
+        self._token_expires = None
         self._refresh_token = None
         self._smartHomeData = {}
 
+    
     def test_authentication(self) -> bool:
         """Test if we can authenticate with the host."""
         try:
@@ -37,8 +40,10 @@ class WattsApi:
             "client_id": "app-front",
         }
 
+        now = datetime.now()
+
         _LOGGER.debug("Trying to get an access token.")
-        request_token_result = request_token_result = requests.post(
+        request_token_result = requests.post(
             url="https://smarthome.wattselectronics.com/auth/realms/watts/protocol/openid-connect/token",
             data=payload,
         )
@@ -47,13 +52,12 @@ class WattsApi:
             _LOGGER.debug("Requesting access token successful")
             token = request_token_result.json()["access_token"]
             self._token = token
-            # Refresh token doesn't seem to bo useful because of
-            # session
+            self._token_expires = now + timedelta(seconds=request_token_result.json()["expires_in"])
             self._refresh_token = request_token_result.json()["refresh_token"]
             return token
         else:
             _LOGGER.error(
-                "Something went wrong fetching token: {}".format(
+                "Something went wrong fetching the token: {}".format(
                     request_token_result.status_code
                 )
             )
@@ -74,6 +78,8 @@ class WattsApi:
 
     def loadSmartHomes(self, firstTry: bool = True):
         """Load the user data"""
+        self._refresh_token_if_expired()
+        
         headers = {"Authorization": f"Bearer {self._token}"}
         payload = {"token": "true", "email": self._username, "lang": "nl_NL"}
 
@@ -83,52 +89,15 @@ class WattsApi:
             data=payload,
         )
 
-        if user_data_result.status_code == 200:
-            if (
-                user_data_result.json()["code"]["code"] == "8"
-                and user_data_result.json()["code"]["key"] == "OK_SET"
-                and user_data_result.json()["code"]["value"] == "Insert / update success"
-            ):
-                return user_data_result.json()["data"]["smarthomes"]
-            else:
-                if firstTry:
-                    # Token may be expired, try to fetch new token
-                    self.getLoginToken()
-                    return self.loadSmartHomes(firstTry=False)
-                else:
-                    _LOGGER.error(
-                        "Something went wrong fetching user data. Code: {}, Key: {}, Value: {}, Data: {}".format(
-                            user_data_result.json()["code"]["code"],
-                            user_data_result.json()["code"]["key"],
-                            user_data_result.json()["code"]["value"],
-                            user_data_result.json()["data"],
-                        )
-                    )
-                    return None
-        else:
-            if user_data_result.status_code == 401:
-                if firstTry:
-                    # Token may be expired, try to fetch new token
-                    self.getLoginToken()
-                    return self.loadSmartHomes(firstTry=False)
-                else:
-                    _LOGGER.error(
-                        "Something went wrong fetching user data: {}".format(
-                            user_data_result.status_code
-                        )
-                    )
-                    return None
-            else: 
-                _LOGGER.error(
-                    "Something went wrong fetching user data: {}".format(
-                        user_data_result.status_code
-                    )
-                )
-                return None
+        if self.check_response(user_data_result):
+            return user_data_result.json()["data"]["smarthomes"]
+            
+        return None
 
     def loadDevices(self, smarthome: str, firstTry: bool = True):
         """Load devices for smart home"""
-
+        self._refresh_token_if_expired()
+        
         headers = {"Authorization": f"Bearer {self._token}"}
         payload = {"token": "true", "smarthome_id": smarthome, "lang": "nl_NL"}
 
@@ -138,51 +107,57 @@ class WattsApi:
             data=payload,
         )
 
-        if devices_result.status_code == 200:
-            if (
-                devices_result.json()["code"]["code"] == "1"
-                and devices_result.json()["code"]["key"] == "OK"
-                and devices_result.json()["code"]["value"] == "OK"
-            ):
-                return devices_result.json()["data"]["devices"]
-            else:
-                if firstTry:
-                    # Token may be expired, try to fetch new token
-                    self.getLoginToken()
-                    return self.loadDevices(smarthome, firstTry=False)
-                else:
-                    _LOGGER.error(
-                        "Something went wrong fetching user data. Code: {}, Key: {}, Value: {}, Data: {}".format(
-                            devices_result.json()["code"]["code"],
-                            devices_result.json()["code"]["key"],
-                            devices_result.json()["code"]["value"],
-                            devices_result.json()["data"],
-                        )
-                    )
-                    return None
+        if self.check_response(devices_result):
+            return devices_result.json()["data"]["devices"]
+            
+        return None
+    
+    def _refresh_token_if_expired(self) -> None:
+        """Check if token is expired and request a new one."""
+        if (
+            self._token_expires
+            and self._refresh_token
+            and self._token_expires <= datetime.now()
+        ):
+            self.refresh_token()
+    
+    def refresh_token(self) -> None:
+        """
+        Update the access and the refresh token.
+        """
+
+        if not self._refresh_token:
+            raise ValueError("No refresh token provided. Login method must be used.")
+
+        payload = {
+            "grant_type": "refresh_token",
+            "refresh_token": self._refresh_token,
+            "client_id": "app-front",
+        }
+        
+        # Request access token
+        now = datetime.now()
+
+        _LOGGER.debug("Trying to refresh the access token.")
+        request_token_result = request_token_result = requests.post(
+            url="https://smarthome.wattselectronics.com/auth/realms/watts/protocol/openid-connect/token",
+            data=payload,
+        )
+
+        if request_token_result.status_code == 200:
+            _LOGGER.debug("Refreshing access token successful")
+            token = request_token_result.json()["access_token"]
+            self._token = token
+            self._token_expires = now + timedelta(seconds=request_token_result.json()["expires_in"])
+            self._refresh_token = request_token_result.json()["refresh_token"]
+            return token
         else:
-            if devices_result.status_code == 401:
-                if firstTry:
-                    # Token may be expired, try to fetch new token
-                    self.getLoginToken()
-                    return self.loadDevices(smarthome, firstTry=False)
-                else:
-                    _LOGGER.error(
-                        "Something went wrong fetching user data. Code: {}, Key: {}, Value: {}, Data: {}".format(
-                            devices_result.json()["code"]["code"],
-                            devices_result.json()["code"]["key"],
-                            devices_result.json()["code"]["value"],
-                            devices_result.json()["data"],
-                        )
-                    )
-                    return None
-            else:
-                _LOGGER.error(
-                    "Something went wrong fetching devices: {}".format(
-                        devices_result.status_code
-                    )
+            _LOGGER.error(
+                "Something went wrong refreshing the token: {}".format(
+                    request_token_result.status_code
                 )
-                return None
+            )
+            raise None
 
     def reloadDevices(self):
         """load devices for each smart home"""
@@ -215,6 +190,8 @@ class WattsApi:
         gvMode: str,
         firstTry: bool = True,
     ):
+        self._refresh_token_if_expired()
+        
         headers = {"Authorization": f"Bearer {self._token}"}
         payload = {}
         if gvMode == "0":
@@ -306,56 +283,13 @@ class WattsApi:
             data=payload,
         )
 
-        if push_result.status_code == 200:
-            if (
-                push_result.json()["code"]["key"] == "OK_SET"
-                and push_result.json()["code"]["value"] == "Insert / update success"
-            ):
-                return True
-            else:
-                if firstTry:
-                    # Token may be expired, try to fetch new token
-                    self.getLoginToken()
-                    return self.pushTemperature(
-                        smarthome, deviceID, value, gvMode, firstTry=False
-                    )
-                else:
-                    _LOGGER.error(
-                        "Something went wrong updating the device. Code: {}, Key: {}, Value: {}, Data: {}".format(
-                            push_result.json()["code"]["code"],
-                            push_result.json()["code"]["key"],
-                            push_result.json()["code"]["value"],
-                            push_result.json()["data"],
-                        )
-                    )
-                    return False
-        else:
-            if push_result.status_code == 401:
-                if firstTry:
-                    # Token may be expired, try to fetch new token
-                    self.getLoginToken()
-                    return self.pushTemperature(
-                        smarthome, deviceID, value, gvMode, firstTry=False
-                    )
-                else:
-                    _LOGGER.error(
-                        "Something went wrong updating the device. Code: {}, Key: {}, Value: {}, Data: {}".format(
-                            push_result.json()["code"]["code"],
-                            push_result.json()["code"]["key"],
-                            push_result.json()["code"]["value"],
-                            push_result.json()["data"],
-                        )
-                    )
-                    return False
-            else:
-                _LOGGER.error(
-                    "Something went wrong updating the device: {}".format(
-                        push_result.status_code
-                    )
-                )
-                return False
+        if self.check_response(push_result):
+            return True
+        return False
 
     def getLastCommunication(self, smarthome: str, firstTry: bool = True):
+        self._refresh_token_if_expired()
+
         headers = {"Authorization": f"Bearer {self._token}"}
         payload = {
             "token": "true",
@@ -369,48 +303,32 @@ class WattsApi:
             data=payload,
         )
 
-        if last_connection_result.status_code == 200:
-            if (
-                last_connection_result.json()["code"]["code"] == "1"
-                and last_connection_result.json()["code"]["key"] == "OK"
-                and last_connection_result.json()["code"]["value"] == "OK"
-            ):
-                return last_connection_result.json()["data"]
+        if self.check_response(last_connection_result):
+            return last_connection_result.json()["data"]
+            
+        return None
+
+    @staticmethod
+    def check_response(response: requests.Response) -> bool:
+        if response.status_code == 200:
+            if "OK" in response.json()["code"]["key"]:
+                return True
             else:
-                if firstTry:
-                    # Token may be expired, try to fetch new token
-                    self.getLoginToken()
-                    return self.getLastCommunication(smarthome, firstTry=False)
-                else:
-                    _LOGGER.error(
-                        "Something went wrong fetching user data. Code: {}, Key: {}, Value: {}, Data: {}".format(
-                            last_connection_result.json()["code"]["code"],
-                            last_connection_result.json()["code"]["key"],
-                            last_connection_result.json()["code"]["value"],
-                            last_connection_result.json()["data"],
-                        )
-                    )
-                    return None
-        else:
-            if last_connection_result.status_code == 401:
-                if firstTry:
-                    # Token may be expired, try to fetch new token
-                    self.getLoginToken()
-                    return self.getLastCommunication(smarthome, firstTry=False)
-                else:
-                    _LOGGER.error(
-                        "Something went wrong fetching user data. Code: {}, Key: {}, Value: {}, Data: {}".format(
-                            last_connection_result.json()["code"]["code"],
-                            last_connection_result.json()["code"]["key"],
-                            last_connection_result.json()["code"]["value"],
-                            last_connection_result.json()["data"],
-                        )
-                    )
-                    return None
-            else:
+                # raise APIException("Code: {0}, key: {1}, value: {2}".format(
+                #     response.json()["code"]["code"],
+                #     response.json()["code"]["key"],
+                #     response.json()["code"]["value"]
+                # ))
                 _LOGGER.error(
-                    "Something went wrong fetching devices: {}".format(
-                        last_connection_result.status_code
+                    "Something went wrong fetching user data. Code: {}, Key: {}, Value: {}, Data: {}".format(
+                        response.json()["code"]["code"],
+                        response.json()["code"]["key"],
+                        response.json()["code"]["value"],
+                        response.json()["data"],
                     )
                 )
-                return None
+                return False
+        if response.status_code == 401:
+            # raise UnauthorizedException("Unauthorized")
+            _LOGGER.error("Unauthorized")
+            return False
