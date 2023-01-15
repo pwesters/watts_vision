@@ -1,0 +1,15 @@
+{
+	"image": "ghcr.io/ludeeus/devcontainer/integration:stable",
+	"name": "Watts Vision: integration development",
+	"context": "..",
+	"appPort": [
+		"9123:8123"
+	],
+	"postCreateCommand": "container install",
+	"extensions": [
+		"ms-python.python",
+		"github.vscode-pull-request-github",
+		"ryanluker.vscode-coverage-gutters",
+		"ms-python.vscode-pylance"
+	]
+}
