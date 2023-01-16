@@ -102,6 +102,7 @@ class WattsVisionThermostatSensor(SensorEntity):
             "manufacturer": "Watts",
             "name": "Thermostat",
             "model": "BT-D03-RF",
+            "via_device": (DOMAIN, self.smartHome)
         }
 
     async def async_update(self):
@@ -170,6 +171,7 @@ class WattsVisionTemperatureSensor(SensorEntity):
             "manufacturer": "Watts",
             "name": "Thermostat",
             "model": "BT-D03-RF",
+            "via_device": (DOMAIN, self.smartHome)
         }
 
     async def async_update(self):
@@ -228,6 +230,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
             "manufacturer": "Watts",
             "name": "Thermostat",
             "model": "BT-D03-RF",
+            "via_device": (DOMAIN, self.smartHome)
         }
 
     async def async_update(self):
@@ -300,7 +303,7 @@ class WattsVisionLastCommunicationSensor(SensorEntity):
             },
             "manufacturer": "Watts",
             "name": smartHome["label"] or "Central Unit",
-            "model": "BT-CT02-RF",
+            "model": "BT-CT02-RF"
         }
 
     async def async_update(self):

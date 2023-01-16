@@ -78,6 +78,7 @@ class WattsVisionHeatingBinarySensor(BinarySensorEntity):
             "manufacturer": "Watts",
             "name": "Thermostat",
             "model": "BT-D03-RF",
+            "via_device": (DOMAIN, self.smartHome)
         }
 
     async def async_update(self):
