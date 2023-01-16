@@ -292,13 +292,14 @@ class WattsVisionLastCommunicationSensor(SensorEntity):
 
     @property
     def device_info(self):
+        smartHome = self.client.getSmartHome(self.smartHome)
         return {
             "identifiers": {
                 # Serial numbers are unique identifiers within a specific domain
                 (DOMAIN, self.smartHome)
             },
             "manufacturer": "Watts",
-            "name": "Central Unit",
+            "name": smartHome["label"] or "Central Unit",
             "model": "BT-CT02-RF",
         }
 
