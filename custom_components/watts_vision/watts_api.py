@@ -152,6 +152,19 @@ class WattsApi:
 
         return None
 
+    def setDevice(self, smarthome: str, deviceId: str, newState: str):
+        """Set specific device"""
+        for y in range(len(self._smartHomeData)):
+            if self._smartHomeData[y]["smarthome_id"] == smarthome:
+                for z in range(len(self._smartHomeData[y]["zones"])):
+                    for x in range(len(self._smartHomeData[y]["zones"][z]["devices"])):
+                        if self._smartHomeData[y]["zones"][z]["devices"][x]["id"] == deviceId:
+                            # If device is found, overwrite it with the new state
+                            self._smartHomeData[y]["zones"][z]["devices"][x] = newState
+                            return self._smartHomeData[y]["zones"][z]["devices"][x]
+
+        return None
+
     def pushTemperature(
         self,
         smarthome: str,

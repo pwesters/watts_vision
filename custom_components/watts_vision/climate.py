@@ -344,6 +344,16 @@ class WattsThermostat(ClimateEntity):
         value = str(int(kwargs["temperature"] * 10))
         gvMode = PRESET_MODE_REVERSE_MAP[self._attr_preset_mode]
 
+        # Get the smartHomeDevice
+        smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
+
+        # update its temp settings
+        smartHomeDevice["consigne_manuel"] = value
+        smartHomeDevice["consigne_confort"] = value
+
+        # Set the smartHomeDevice using the just altered SmartHomeDevice
+        self.client.setDevice(self.smartHome, self.id, smartHomeDevice)
+
         func = functools.partial(
             self.client.pushTemperature,
             self.smartHome,
