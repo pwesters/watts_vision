@@ -1,5 +1,5 @@
 {
-  "codeowners": ["@pwesters"],
+  "codeowners": ["@pwesters", "nowarries"],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/pwesters/watts_vision",
@@ -8,5 +8,5 @@
   "iot_class": "cloud_polling",
   "name": "Watts Vision",
   "requirements": [],
-  "version": "0.3.0-beta.0"
+  "version": "0.3.0-beta.2"
 }
