@@ -5,9 +5,11 @@ from typing import Callable
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     CURRENT_HVAC_HEAT,
+    CURRENT_HVAC_COOL,
     CURRENT_HVAC_IDLE,
     CURRENT_HVAC_OFF,
     HVAC_MODE_HEAT,
+    HVAC_MODE_COOL,
     HVAC_MODE_OFF,
     PRESET_BOOST,
     PRESET_COMFORT,
@@ -103,7 +105,7 @@ class WattsThermostat(ClimateEntity):
 
     @property
     def hvac_modes(self) -> list[str]:
-        return [HVAC_MODE_HEAT] + [HVAC_MODE_OFF]
+        return [HVAC_MODE_HEAT] + [HVAC_MODE_COOL] + [HVAC_MODE_OFF]
 
     @property
     def hvac_mode(self) -> str:
@@ -159,10 +161,16 @@ class WattsThermostat(ClimateEntity):
             else:
                 self._attr_hvac_action = CURRENT_HVAC_IDLE
         else:
-            self._attr_hvac_action = CURRENT_HVAC_HEAT
+            if smartHomeDevice["heat_cool"] == "1":
+                self._attr_hvac_action = CURRENT_HVAC_COOL
+            else:
+                self._attr_hvac_action = CURRENT_HVAC_HEAT
 
         if smartHomeDevice["gv_mode"] == "0":
-            self._attr_hvac_mode = HVAC_MODE_HEAT
+            if smartHomeDevice["heat_cool"] == "1":
+                self._attr_hvac_mode = HVAC_MODE_COOL
+            else:
+                self._attr_hvac_mode = HVAC_MODE_HEAT
             self._attr_preset_mode = PRESET_MODE_MAP["0"]
             self._attr_target_temperature = (
                 float(smartHomeDevice["consigne_confort"]) / 10
@@ -172,21 +180,33 @@ class WattsThermostat(ClimateEntity):
             self._attr_preset_mode = PRESET_MODE_MAP["1"]
             self._attr_target_temperature = None
         if smartHomeDevice["gv_mode"] == "2":
-            self._attr_hvac_mode = HVAC_MODE_HEAT
+            if smartHomeDevice["heat_cool"] == "1":
+                self._attr_hvac_mode = HVAC_MODE_COOL
+            else:
+                self._attr_hvac_mode = HVAC_MODE_HEAT
             self._attr_preset_mode = PRESET_MODE_MAP["2"]
             self._attr_target_temperature = float(smartHomeDevice["consigne_hg"]) / 10
         if smartHomeDevice["gv_mode"] == "3":
-            self._attr_hvac_mode = HVAC_MODE_HEAT
+            if smartHomeDevice["heat_cool"] == "1":
+                self._attr_hvac_mode = HVAC_MODE_COOL
+            else:
+                self._attr_hvac_mode = HVAC_MODE_HEAT
             self._attr_preset_mode = PRESET_MODE_MAP["3"]
             self._attr_target_temperature = float(smartHomeDevice["consigne_eco"]) / 10
         if smartHomeDevice["gv_mode"] == "4":
-            self._attr_hvac_mode = HVAC_MODE_HEAT
+            if smartHomeDevice["heat_cool"] == "1":
+                self._attr_hvac_mode = HVAC_MODE_COOL
+            else:
+                self._attr_hvac_mode = HVAC_MODE_HEAT
             self._attr_preset_mode = PRESET_MODE_MAP["4"]
             self._attr_target_temperature = (
                 float(smartHomeDevice["consigne_boost"]) / 10
             )
         if smartHomeDevice["gv_mode"] == "11":
-            self._attr_hvac_mode = HVAC_MODE_HEAT
+            if smartHomeDevice["heat_cool"] == "1":
+                self._attr_hvac_mode = HVAC_MODE_COOL
+            else:
+                self._attr_hvac_mode = HVAC_MODE_HEAT
             self._attr_preset_mode = PRESET_MODE_MAP["11"]
             self._attr_target_temperature = (
                 float(smartHomeDevice["consigne_manuel"]) / 10
@@ -215,7 +235,7 @@ class WattsThermostat(ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
-        if hvac_mode == HVAC_MODE_HEAT:
+        if hvac_mode == HVAC_MODE_HEAT or hvac_mode == HVAC_MODE_COOL:
             value = "0"
             if self._attr_extra_state_attributes["previous_gv_mode"] == "0":
                 value = str(
