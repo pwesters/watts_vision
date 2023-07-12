@@ -66,6 +66,7 @@ async def async_setup_entry(
                     smartHomes[y]["smarthome_id"],
                     smartHomes[y]["devices"][x]["id"],
                     smartHomes[y]["devices"][x]["id_device"],
+                    smartHomes[y]["devices"][x]["num_zone"],
                 )
             )
 
@@ -75,13 +76,14 @@ async def async_setup_entry(
 class WattsThermostat(ClimateEntity):
     """"""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, deviceID: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, deviceID: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
+        self.zone = zone
         self.deviceID = deviceID
-        self._name = "Thermostat"
+        self._name = "Thermostat" + zone
         self._available = True
         self._attr_extra_state_attributes = {"previous_gv_mode": "0"}
 
@@ -139,7 +141,7 @@ class WattsThermostat(ClimateEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat" + self.zone,
             "model": "BT-D03-RF",
         }
 

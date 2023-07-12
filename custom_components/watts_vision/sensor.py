@@ -40,6 +40,7 @@ async def async_setup_entry(
                             wattsClient,
                             smartHomes[y]["smarthome_id"],
                             smartHomes[y]["devices"][x]["id"],
+                            smartHomes[y]["devices"][x]["num_zone"],
                         )
                     )
                     sensors.append(
@@ -47,6 +48,7 @@ async def async_setup_entry(
                             wattsClient,
                             smartHomes[y]["smarthome_id"],
                             smartHomes[y]["devices"][x]["id"],
+                            smartHomes[y]["devices"][x]["num_zone"],
                         )
                     )
                     sensors.append(
@@ -54,6 +56,7 @@ async def async_setup_entry(
                             wattsClient,
                             smartHomes[y]["smarthome_id"],
                             smartHomes[y]["devices"][x]["id"],
+                            smartHomes[y]["devices"][x]["num_zone"],
                         )
                     )
             sensors.append(
@@ -69,12 +72,13 @@ async def async_setup_entry(
 class WattsVisionThermostatSensor(SensorEntity):
     """Representation of a Watts Vision thermostat."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "Heating mode"
+        self.zone = zone
+        self._name = "Heating mode " + zone
         self._state = None
         self._available = True
 
@@ -100,7 +104,7 @@ class WattsVisionThermostatSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat" + self.zone,
             "model": "BT-D03-RF",
         }
 
@@ -129,12 +133,13 @@ class WattsVisionThermostatSensor(SensorEntity):
 class WattsVisionTemperatureSensor(SensorEntity):
     """Representation of a Watts Vision temperature sensor."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "Air temperature"
+        self.zone = zone
+        self._name = "Air temperature " + zone
         self._state = None
         self._available = True
 
@@ -168,7 +173,7 @@ class WattsVisionTemperatureSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat" + self.zone,
             "model": "BT-D03-RF",
         }
 
@@ -187,12 +192,13 @@ class WattsVisionTemperatureSensor(SensorEntity):
 class WattsVisionSetTemperatureSensor(SensorEntity):
     """Representation of a Watts Vision temperature sensor."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "Target temperature"
+        self.zone = zone
+        self._name = "Target temperature " + zone
         self._state = None
         self._available = True
 
@@ -226,7 +232,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat" + self.zone,
             "model": "BT-D03-RF",
         }
 

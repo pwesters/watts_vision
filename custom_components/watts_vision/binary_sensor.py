@@ -35,6 +35,7 @@ async def async_setup_entry(
                             wattsClient,
                             smartHomes[y]["smarthome_id"],
                             smartHomes[y]["devices"][x]["id"],
+                            smartHomes[y]["devices"][x]["num_zone"],
                         )
                     )
 
@@ -44,12 +45,13 @@ async def async_setup_entry(
 class WattsVisionHeatingBinarySensor(BinarySensorEntity):
     """Representation of a Watts Vision thermostat."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "Heating"
+        self.zone = zone
+        self._name = "Heating" + zone
         self._state: bool = False
         self._available = True
 
@@ -76,7 +78,7 @@ class WattsVisionHeatingBinarySensor(BinarySensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat" + self.zone,
             "model": "BT-D03-RF",
         }
 
