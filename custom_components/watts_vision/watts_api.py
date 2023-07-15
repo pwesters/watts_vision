@@ -80,13 +80,7 @@ class WattsApi:
         smarthomes = self.loadSmartHomes()
         self._smartHomeData = smarthomes
 
-        """load devices for each smart home"""
-        if self._smartHomeData is not None:
-            for y in range(len(self._smartHomeData)):
-                devices = self.loadDevices(self._smartHomeData[y]["smarthome_id"])
-                self._smartHomeData[y]["devices"] = devices
-
-        return True
+        return self.reloadDevices()
 
     def loadSmartHomes(self, firstTry: bool = True):
         """Load the user data"""
