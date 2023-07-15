@@ -307,3 +307,7 @@ class WattsApi:
             # raise UnauthorizedException("Unauthorized")
             _LOGGER.error("Unauthorized")
             return False
+        else:
+            # raise UnHandledStatuException(response.status_code)
+            _LOGGER.error("Unhandled status code {}".format(response_status_code))
+            return False
