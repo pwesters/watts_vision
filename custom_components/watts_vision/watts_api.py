@@ -18,6 +18,7 @@ class WattsApi:
         self._token = None
         self._token_expires = None
         self._refresh_token = None
+        self._refresh_expires_in = None
         self._smartHomeData = {}
 
     
@@ -31,29 +32,40 @@ class WattsApi:
             return False
 
     def getLoginToken(self):
-        """Get the login token for the Watts Smarthome API"""
-
-        payload = {
-            "grant_type": "password",
-            "username": self._username,
-            "password": self._password,
-            "client_id": "app-front",
-        }
+        """Get the access token for the Watts Smarthome API through login or refresh"""
 
         now = datetime.now()
 
-        _LOGGER.debug("Trying to get an access token.")
+        if (not self._refresh_expires_in or self._refresh_expires_in <= now):
+            _LOGGER.debug("Login to get an access token.")
+            payload = {
+                "grant_type": "password",
+                "username": self._username,
+                "password": self._password,
+                "client_id": "app-front",
+            }
+        elif (self._token_expires <= now):
+            _LOGGER.debug("Refreshing access token")
+            payload = {
+                "grant_type": "refresh_token",
+                "refresh_token": self._refresh_token,
+                "client_id": "app-front",
+            }
+        else:
+            _LOGGER.debug("Getting token called unneeded.")
+
         request_token_result = requests.post(
             url="https://smarthome.wattselectronics.com/auth/realms/watts/protocol/openid-connect/token",
             data=payload,
         )
 
         if request_token_result.status_code == 200:
-            _LOGGER.debug("Requesting access token successful")
             token = request_token_result.json()["access_token"]
             self._token = token
             self._token_expires = now + timedelta(seconds=request_token_result.json()["expires_in"])
             self._refresh_token = request_token_result.json()["refresh_token"]
+            self._refresh_expires_in = now + timedelta(seconds=request_token_result.json()["refresh_expires_in"])
+            _LOGGER.debug("Received access token. New refresh_token needed on {}".format(self._refresh_expires_in))
             return token
         else:
             _LOGGER.error(
@@ -114,50 +126,13 @@ class WattsApi:
     
     def _refresh_token_if_expired(self) -> None:
         """Check if token is expired and request a new one."""
-        if (
-            self._token_expires
-            and self._refresh_token
-            and self._token_expires <= datetime.now()
-        ):
-            self.refresh_token()
-    
-    def refresh_token(self) -> None:
-        """
-        Update the access and the refresh token.
-        """
-
-        if not self._refresh_token:
-            raise ValueError("No refresh token provided. Login method must be used.")
-
-        payload = {
-            "grant_type": "refresh_token",
-            "refresh_token": self._refresh_token,
-            "client_id": "app-front",
-        }
-        
-        # Request access token
         now = datetime.now()
 
-        _LOGGER.debug("Trying to refresh the access token.")
-        request_token_result = request_token_result = requests.post(
-            url="https://smarthome.wattselectronics.com/auth/realms/watts/protocol/openid-connect/token",
-            data=payload,
-        )
-
-        if request_token_result.status_code == 200:
-            _LOGGER.debug("Refreshing access token successful")
-            token = request_token_result.json()["access_token"]
-            self._token = token
-            self._token_expires = now + timedelta(seconds=request_token_result.json()["expires_in"])
-            self._refresh_token = request_token_result.json()["refresh_token"]
-            return token
-        else:
-            _LOGGER.error(
-                "Something went wrong refreshing the token: {}".format(
-                    request_token_result.status_code
-                )
-            )
-            raise None
+        if (self._token_expires and self._token_expires <= now
+            or
+            self._refresh_expires_in and self._refresh_expires_in <= now
+        ):
+            self.getLoginToken()
 
     def reloadDevices(self):
         """load devices for each smart home"""
