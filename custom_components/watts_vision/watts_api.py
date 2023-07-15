@@ -162,89 +162,49 @@ class WattsApi:
         self._refresh_token_if_expired()
         
         headers = {"Authorization": f"Bearer {self._token}"}
-        payload = {}
-        if gvMode == "0":
-            payload = {
+        payload = {
                 "token": "true",
                 "context": "1",
                 "smarthome_id": smarthome,
                 "query[id_device]": deviceID,
                 "query[time_boost]": "0",
+                "query[gv_mode]": gvMode,
+                "query[nv_mode]": gvMode,
+                "peremption": "15000",
+                "lang": "nl_NL",
+            }
+        extrapayload = {}
+        if gvMode == "0":
+            extrapayload = {
                 "query[consigne_confort]": value,
                 "query[consigne_manuel]": value,
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
-                "peremption": "15000",
-                "lang": "nl_NL",
             }
-        if gvMode == "1":
-            payload = {
-                "token": "true",
-                "context": "1",
-                "smarthome_id": smarthome,
-                "query[id_device]": deviceID,
-                "query[time_boost]": "0",
+        elif gvMode == "1":
+            extrapayload = {
                 "query[consigne_manuel]": "0",
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
-                "peremption": "15000",
-                "lang": "nl_NL",
             }
-        if gvMode == "2":
-            payload = {
-                "token": "true",
-                "context": "1",
-                "smarthome_id": smarthome,
-                "query[id_device]": deviceID,
-                "query[time_boost]": "0",
+        elif gvMode == "2":
+            extrapayload = {
                 "query[consigne_hg]": "446",
                 "query[consigne_manuel]": "446",
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
                 "peremption": "20000",
-                "lang": "nl_NL",
             }
-        if gvMode == "3":
-            payload = {
-                "token": "true",
-                "context": "1",
-                "smarthome_id": smarthome,
-                "query[id_device]": deviceID,
-                "query[time_boost]": "0",
+        elif gvMode == "3":
+            extrapayload = {
                 "query[consigne_eco]": value,
                 "query[consigne_manuel]": value,
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
-                "peremption": "15000",
-                "lang": "nl_NL",
             }
-        if gvMode == "4":
-            payload = {
-                "token": "true",
-                "context": "1",
-                "smarthome_id": smarthome,
-                "query[id_device]": deviceID,
+        elif gvMode == "4":
+            extrapayload = {
                 "query[time_boost]": "7200",
                 "query[consigne_boost]": value,
                 "query[consigne_manuel]": value,
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
-                "peremption": "15000",
-                "lang": "nl_NL",
             }
-        if gvMode == "11":
-            payload = {
-                "token": "true",
-                "context": "1",
-                "smarthome_id": smarthome,
-                "query[id_device]": deviceID,
-                "query[time_boost]": "0",
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
+        elif gvMode == "11":
+            extrapayload = {
                 "query[consigne_manuel]": value,
-                "peremption": "15000",
-                "lang": "nl_NL",
             }
+        payload.update(extrapayload)
 
         push_result = requests.post(
             url="https://smarthome.wattselectronics.com/api/v0.1/human/query/push/",
