@@ -1,18 +1,36 @@
 {
-    "title": "Watts Vision",
-    "config": {
-     "error": {
-         "invalid_auth": "Email and or password invalid.",
-         "unknown": "Unexpected exception occured."
-     },
-      "step": {
-        "user": {
-          "data": {
-            "username": "Email",
-            "password": "Password"
-          },
-          "description" : "Connect to the Watts Vision API"
-        }
+  "title": "Watts Vision",
+  "config": {
+    "error": {
+      "invalid_auth": "Email and/or password invalid.",
+      "unknown": "Unexpected exception occurred.",
+      "username_exists": "An account with the provided email is already being tracked."
+    },
+    "step": {
+      "user": {
+        "data": {
+          "username": "Email",
+          "password": "Password"
+        },
+        "description": "Connect to the Watts Vision API"
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "invalid_auth": "Email and/or password invalid.",
+      "unknown": "Unexpected exception occurred.",
+      "username_exists": "An account with the provided email is already being tracked."
+    },
+    "step": {
+      "init": {
+        "data": {
+          "username": "Email",
+          "password": "Password"
+        },
+        "title": "Watts Vision - Account reconfiguration",
+        "description": "Reconfigure account details and reconnect to the Watts Vision API"
       }
     }
   }
+}
