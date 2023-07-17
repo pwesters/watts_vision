@@ -58,15 +58,19 @@ async def async_setup_entry(
 
     devices = []
 
+    if smartHomes is not None:
     for y in range(len(smartHomes)):
-        for x in range(len(smartHomes[y]["devices"])):
+            if smartHomes[y]["zones"] is not None:
+                for z in range(len(smartHomes[y]["zones"])):
+                    if smartHomes[y]["zones"][z]["devices"] is not None:
+                        for x in range(len(smartHomes[y]["zones"][z]["devices"])):
             devices.append(
                 WattsThermostat(
                     wattsClient,
                     smartHomes[y]["smarthome_id"],
-                    smartHomes[y]["devices"][x]["id"],
-                    smartHomes[y]["devices"][x]["id_device"],
-                    smartHomes[y]["devices"][x]["num_zone"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id_device"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
                 )
             )
 
@@ -253,10 +257,11 @@ class WattsThermostat(ClimateEntity):
             # reloading the devices may take some time, meanwhile set the new values manually
             for y in range(len(self.client._smartHomeData)):
                 if self.client._smartHomeData[y]["smarthome_id"] == self.smartHome:
-                    for x in range(len(self.client._smartHomeData[y]["devices"])):
-                        if (self.client._smartHomeData[y]["devices"][x]["id"] == self.id):
-                            self.client._smartHomeData[y]["devices"][x]["gv_mode"] = self._attr_extra_state_attributes["previous_gv_mode"]
-                            self.client._smartHomeData[y]["devices"][x]["consigne_manuel"] = value
+                    for z in range(len(self.client._smartHomeData[y]["zones"])):
+                        for x in range(len(self.client._smartHomeData[y]["zones"][z]["devices"])):
+                            if (self.client._smartHomeData[y]["zones"][z]["devices"][x]["id"] == self.id):
+                                self.client._smartHomeData[y]["zones"][z]["devices"][x]["gv_mode"] = self._attr_extra_state_attributes["previous_gv_mode"]
+                                self.client._smartHomeData[y]["zones"][z]["devices"][x]["consigne_manuel"] = value
                             if (self._attr_extra_state_attributes["previous_gv_mode"] == "0"):
                                 self._attr_extra_state_attributes["consigne_confort"] = value
                             elif (self._attr_extra_state_attributes["previous_gv_mode"] == "2"):
@@ -281,10 +286,11 @@ class WattsThermostat(ClimateEntity):
             # reloading the devices may take some time, meanwhile set the new values manually
             for y in range(len(self.client._smartHomeData)):
                 if self.client._smartHomeData[y]["smarthome_id"] == self.smartHome:
-                    for x in range(len(self.client._smartHomeData[y]["devices"])):
-                        if (self.client._smartHomeData[y]["devices"][x]["id"] == self.id):
-                            self.client._smartHomeData[y]["devices"][x]["gv_mode"] = PRESET_MODE_REVERSE_MAP[PRESET_OFF]
-                            self.client._smartHomeData[y]["devices"][x]["consigne_manuel"] = "0"
+                    for z in range(len(self.client._smartHomeData[y]["zones"])):
+                        for x in range(len(self.client._smartHomeData[y]["zones"][z]["devices"])):
+                            if (self.client._smartHomeData[y]["zones"][z]["devices"][x]["id"] == self.id):
+                                self.client._smartHomeData[y]["zones"][z]["devices"][x]["gv_mode"] = PRESET_MODE_REVERSE_MAP[PRESET_OFF]
+                                self.client._smartHomeData[y]["zones"][z]["devices"][x]["consigne_manuel"] = "0"
 
             func = functools.partial(
                 self.client.pushTemperature,
@@ -317,10 +323,11 @@ class WattsThermostat(ClimateEntity):
         # reloading the devices may take some time, meanwhile set the new values manually
         for y in range(len(self.client._smartHomeData)):
             if self.client._smartHomeData[y]["smarthome_id"] == self.smartHome:
-                for x in range(len(self.client._smartHomeData[y]["devices"])):
-                    if (self.client._smartHomeData[y]["devices"][x]["id"] == self.id):
-                        self.client._smartHomeData[y]["devices"][x][ "gv_mode" ] = PRESET_MODE_REVERSE_MAP[preset_mode]
-                        self.client._smartHomeData[y]["devices"][x]["consigne_manuel"] = value
+                    for z in range(len(self.client._smartHomeData[y]["zones"])):
+                        for x in range(len(self.client._smartHomeData[y]["zones"][z]["devices"])):
+                            if (self.client._smartHomeData[y]["zone"][z]["devices"][x]["id"] == self.id):
+                                self.client._smartHomeData[y]["zone"][z]["devices"][x]["gv_mode"] = PRESET_MODE_REVERSE_MAP[preset_mode]
+                                self.client._smartHomeData[y]["zone"][z]["devices"][x]["consigne_manuel"] = value
 
         func = functools.partial(
             self.client.pushTemperature,

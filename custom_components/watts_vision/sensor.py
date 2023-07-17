@@ -33,36 +33,39 @@ async def async_setup_entry(
 
     if smartHomes is not None:
         for y in range(len(smartHomes)):
-            if smartHomes[y]["devices"] is not None:
-                for x in range(len(smartHomes[y]["devices"])):
+            if smartHomes[y]["zones"] is not None:
+                for z in range(len(smartHomes[y]["zones"])):
+                    if smartHomes[y]["zones"][z]["devices"] is not None:
+                        for x in range(len(smartHomes[y]["zones"][z]["devices"])):
                     sensors.append(
                         WattsVisionThermostatSensor(
                             wattsClient,
                             smartHomes[y]["smarthome_id"],
-                            smartHomes[y]["devices"][x]["id"],
-                            smartHomes[y]["devices"][x]["num_zone"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
                         )
                     )
                     sensors.append(
                         WattsVisionTemperatureSensor(
                             wattsClient,
                             smartHomes[y]["smarthome_id"],
-                            smartHomes[y]["devices"][x]["id"],
-                            smartHomes[y]["devices"][x]["num_zone"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
                         )
                     )
                     sensors.append(
                         WattsVisionSetTemperatureSensor(
                             wattsClient,
                             smartHomes[y]["smarthome_id"],
-                            smartHomes[y]["devices"][x]["id"],
-                            smartHomes[y]["devices"][x]["num_zone"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
                         )
                     )
             sensors.append(
                 WattsVisionLastCommunicationSensor(
                     wattsClient,
-                    smartHomes[y]["smarthome_id"]
+                    smartHomes[y]["smarthome_id"],
+                    smartHomes[y]["label"]
                 )
             )
 
@@ -274,11 +277,12 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
 
 
 class WattsVisionLastCommunicationSensor(SensorEntity):
-    def __init__(self, wattsClient: WattsApi, smartHome: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, label: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
-        self._name = "Last communication"
+        self._label = label
+        self._name = "Last communication " + self._label
         self._state = None
         self._available = True
 
@@ -304,8 +308,8 @@ class WattsVisionLastCommunicationSensor(SensorEntity):
                 (DOMAIN, self.smartHome)
             },
             "manufacturer": "Watts",
-            "name": "Central Unit",
-            "model": "BT-CT02-RF",
+            "name": "Central Unit " + self._label,
+            "model": "BT-CT02-RF"
         }
 
     async def async_update(self):

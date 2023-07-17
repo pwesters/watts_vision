@@ -114,7 +114,7 @@ class WattsApi:
         )
 
         if self.check_response(devices_result):
-            return devices_result.json()["data"]["devices"]
+            return devices_result.json()["data"]["zones"]
             
         return None
     
@@ -132,8 +132,8 @@ class WattsApi:
         """load devices for each smart home"""
         if self._smartHomeData is not None:
             for y in range(len(self._smartHomeData)):
-                devices = self.loadDevices(self._smartHomeData[y]["smarthome_id"])
-                self._smartHomeData[y]["devices"] = devices
+                zones = self.loadDevices(self._smartHomeData[y]["smarthome_id"])
+                self._smartHomeData[y]["zones"] = zones
 
         return True
 
@@ -145,9 +145,10 @@ class WattsApi:
         """Get specific device"""
         for y in range(len(self._smartHomeData)):
             if self._smartHomeData[y]["smarthome_id"] == smarthome:
-                for x in range(len(self._smartHomeData[y]["devices"])):
-                    if self._smartHomeData[y]["devices"][x]["id"] == deviceId:
-                        return self._smartHomeData[y]["devices"][x]
+                for z in range(len(self._smartHomeData[y]["zones"])):
+                    for x in range(len(self._smartHomeData[y]["zones"][z]["devices"])):
+                        if self._smartHomeData[y]["zones"][z]["devices"][x]["id"] == deviceId:
+                            return self._smartHomeData[y]["zones"][z]["devices"][x]
 
         return None
 
