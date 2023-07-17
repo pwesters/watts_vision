@@ -52,7 +52,7 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
             _LOGGER.exception("Unexpected exception")
             errors["base"] = "unknown"
         else:
-            return self.async_create_entry(title="Watts Vision", data=user_input)
+            return self.async_create_entry(title=str(user_input['username']), data=user_input)
 
         return self.async_show_form(
             step_id="user", data_schema=CONFIG_SCHEMA, errors=errors
