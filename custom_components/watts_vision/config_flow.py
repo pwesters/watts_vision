@@ -21,13 +21,13 @@ CONFIG_SCHEMA = vol.Schema(
 _LOGGER = logging.getLogger(__name__)
 
 
-async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
+async def validate_input(hass: HomeAssistant, data: dict[str, Any], current: dict[str, Any] = None) -> dict[str, Any]:
     """Validate the user input allows us to connect."""
 
     # Check if the username already exists as an entry
     existing_entries = hass.config_entries.async_entries(DOMAIN)
     for entry in existing_entries:
-        if entry.data.get(CONF_USERNAME) == data[CONF_USERNAME]:
+        if entry.data.get(CONF_USERNAME) == data[CONF_USERNAME] and (current == None or entry.data.get(CONF_USERNAME) != current.get("username")):
             raise UsernameExists
 
     api = WattsApi(hass, data[CONF_USERNAME], data[CONF_PASSWORD])
@@ -98,7 +98,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             try:
                 _LOGGER.debug("Validate input")
-                validated_data = await validate_input(self.hass, user_input)
+                validated_data = await validate_input(self.hass, user_input, self.config_entry.data)
 
                 # Update entry
                 _LOGGER.debug("Updating entry")
