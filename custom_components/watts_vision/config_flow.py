@@ -95,6 +95,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input=None):
         errors = {}
+        updated = None
         if user_input is not None:
             try:
                 _LOGGER.debug("Validate input")
@@ -102,11 +103,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
                 # Update entry
                 _LOGGER.debug("Updating entry")
-                if self.hass.config_entries.async_update_entry(
+                updated = self.hass.config_entries.async_update_entry(
                     self.config_entry,
                     title=str(user_input["username"]),
                     data=validated_data,
-                ):
+                )
+                if updated:
                     # Reload entry
                     _LOGGER.debug("Reloading entry")
                     await self.hass.config_entries.async_reload(
@@ -120,6 +122,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
+            else:
+                # If updated, return to overview
+                return self.async_create_entry(title="", data=None)
 
         return self.async_show_form(
             step_id="init",
