@@ -32,14 +32,14 @@ async def async_setup_entry(
                 for z in range(len(smartHomes[y]["zones"])):
                     if smartHomes[y]["zones"][z]["devices"] is not None:
                         for x in range(len(smartHomes[y]["zones"][z]["devices"])):
-                    sensors.append(
-                        WattsVisionHeatingBinarySensor(
-                            wattsClient,
-                            smartHomes[y]["smarthome_id"],
-                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
-                                    smartHomes[y]["zones"][z]["zone_label"]
-                        )
-                    )
+                            sensors.append(
+                                WattsVisionHeatingBinarySensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
+                                            smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                            smartHomes[y]["zones"][z]["zone_label"]
+                                )
+                            )
 
     async_add_entities(sensors, update_before_add=True)
 

@@ -59,20 +59,20 @@ async def async_setup_entry(
     devices = []
 
     if smartHomes is not None:
-    for y in range(len(smartHomes)):
+        for y in range(len(smartHomes)):
             if smartHomes[y]["zones"] is not None:
                 for z in range(len(smartHomes[y]["zones"])):
                     if smartHomes[y]["zones"][z]["devices"] is not None:
                         for x in range(len(smartHomes[y]["zones"][z]["devices"])):
-            devices.append(
-                WattsThermostat(
-                    wattsClient,
-                    smartHomes[y]["smarthome_id"],
-                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
-                                    smartHomes[y]["zones"][z]["devices"][x]["id_device"],
-                                    smartHomes[y]["zones"][z]["zone_label"]
-                )
-            )
+                            devices.append(
+                                WattsThermostat(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
+                                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                                    smartHomes[y]["zones"][z]["devices"][x]["id_device"],
+                                                    smartHomes[y]["zones"][z]["zone_label"]
+                                )
+                            )
 
     async_add_entities(devices, update_before_add=True)
 
