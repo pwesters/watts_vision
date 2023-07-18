@@ -38,30 +38,30 @@ async def async_setup_entry(
                 for z in range(len(smartHomes[y]["zones"])):
                     if smartHomes[y]["zones"][z]["devices"] is not None:
                         for x in range(len(smartHomes[y]["zones"][z]["devices"])):
-                    sensors.append(
-                        WattsVisionThermostatSensor(
-                            wattsClient,
-                            smartHomes[y]["smarthome_id"],
+                            sensors.append(
+                                WattsVisionThermostatSensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
                                     smartHomes[y]["zones"][z]["devices"][x]["id"],
                                     smartHomes[y]["zones"][z]["zone_label"]
-                        )
-                    )
-                    sensors.append(
-                        WattsVisionTemperatureSensor(
-                            wattsClient,
-                            smartHomes[y]["smarthome_id"],
+                                )
+                            )
+                            sensors.append(
+                                WattsVisionTemperatureSensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
                                     smartHomes[y]["zones"][z]["devices"][x]["id"],
                                     smartHomes[y]["zones"][z]["zone_label"]
-                        )
-                    )
-                    sensors.append(
-                        WattsVisionSetTemperatureSensor(
-                            wattsClient,
-                            smartHomes[y]["smarthome_id"],
+                                )
+                            )
+                            sensors.append(
+                                WattsVisionSetTemperatureSensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
                                     smartHomes[y]["zones"][z]["devices"][x]["id"],
                                     smartHomes[y]["zones"][z]["zone_label"]
-                        )
-                    )
+                                )
+                            )
             sensors.append(
                 WattsVisionLastCommunicationSensor(
                     wattsClient,
