@@ -12,6 +12,7 @@ from numpy import NaN
 
 from .const import API_CLIENT, DOMAIN
 from .watts_api import WattsApi
+from .central_unit import WattsVisionLastCommunicationSensor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,33 +34,39 @@ async def async_setup_entry(
 
     if smartHomes is not None:
         for y in range(len(smartHomes)):
-            if smartHomes[y]["devices"] is not None:
-                for x in range(len(smartHomes[y]["devices"])):
-                    sensors.append(
-                        WattsVisionThermostatSensor(
-                            wattsClient,
-                            smartHomes[y]["smarthome_id"],
-                            smartHomes[y]["devices"][x]["id"],
-                        )
-                    )
-                    sensors.append(
-                        WattsVisionTemperatureSensor(
-                            wattsClient,
-                            smartHomes[y]["smarthome_id"],
-                            smartHomes[y]["devices"][x]["id"],
-                        )
-                    )
-                    sensors.append(
-                        WattsVisionSetTemperatureSensor(
-                            wattsClient,
-                            smartHomes[y]["smarthome_id"],
-                            smartHomes[y]["devices"][x]["id"],
-                        )
-                    )
+            if smartHomes[y]["zones"] is not None:
+                for z in range(len(smartHomes[y]["zones"])):
+                    if smartHomes[y]["zones"][z]["devices"] is not None:
+                        for x in range(len(smartHomes[y]["zones"][z]["devices"])):
+                            sensors.append(
+                                WattsVisionThermostatSensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
+                                )
+                            )
+                            sensors.append(
+                                WattsVisionTemperatureSensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
+                                )
+                            )
+                            sensors.append(
+                                WattsVisionSetTemperatureSensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
+                                )
+                            )
             sensors.append(
                 WattsVisionLastCommunicationSensor(
                     wattsClient,
-                    smartHomes[y]["smarthome_id"]
+                    smartHomes[y]["smarthome_id"],
+                    smartHomes[y]["label"]
                 )
             )
 
@@ -69,12 +76,13 @@ async def async_setup_entry(
 class WattsVisionThermostatSensor(SensorEntity):
     """Representation of a Watts Vision thermostat."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "Heating mode"
+        self.zone = zone
+        self._name = "Heating mode " + zone
         self._state = None
         self._available = True
 
@@ -100,7 +108,7 @@ class WattsVisionThermostatSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat" + self.zone,
             "model": "BT-D03-RF",
             "via_device": (DOMAIN, self.smartHome)
         }
@@ -130,12 +138,13 @@ class WattsVisionThermostatSensor(SensorEntity):
 class WattsVisionTemperatureSensor(SensorEntity):
     """Representation of a Watts Vision temperature sensor."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "Air temperature"
+        self.zone = zone
+        self._name = "Air temperature " + zone
         self._state = None
         self._available = True
 
@@ -169,7 +178,7 @@ class WattsVisionTemperatureSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat" + self.zone,
             "model": "BT-D03-RF",
             "via_device": (DOMAIN, self.smartHome)
         }
@@ -189,12 +198,13 @@ class WattsVisionTemperatureSensor(SensorEntity):
 class WattsVisionSetTemperatureSensor(SensorEntity):
     """Representation of a Watts Vision temperature sensor."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "Target temperature"
+        self.zone = zone
+        self._name = "Target temperature " + zone
         self._state = None
         self._available = True
 
@@ -228,7 +238,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat" + self.zone,
             "model": "BT-D03-RF",
             "via_device": (DOMAIN, self.smartHome)
         }
@@ -268,50 +278,3 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
         # except:
         #     self._available = False
         #     _LOGGER.exception("Error retrieving data.")
-
-
-class WattsVisionLastCommunicationSensor(SensorEntity):
-    def __init__(self, wattsClient: WattsApi, smartHome: str):
-        super().__init__()
-        self.client = wattsClient
-        self.smartHome = smartHome
-        self._name = "Last communication"
-        self._state = None
-        self._available = True
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique ID of the sensor."""
-        return "last_communication_" + self.smartHome
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name
-
-    @property
-    def state(self) -> Optional[str]:
-        return self._state
-
-    @property
-    def device_info(self):
-        smartHome = self.client.getSmartHome(self.smartHome)
-        return {
-            "identifiers": {
-                # Serial numbers are unique identifiers within a specific domain
-                (DOMAIN, self.smartHome)
-            },
-            "manufacturer": "Watts",
-            "name": smartHome["label"] or "Central Unit",
-            "model": "BT-CT02-RF"
-        }
-
-    async def async_update(self):
-        data = await self.hass.async_add_executor_job(self.client.getLastCommunication, self.smartHome)
-
-        self._state = "{} days, {} hours, {} minutes and {} seconds.".format(
-            data["diffObj"]["days"],
-            data["diffObj"]["hours"],
-            data["diffObj"]["minutes"],
-            data["diffObj"]["seconds"]
-        )
