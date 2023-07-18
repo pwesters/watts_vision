@@ -28,7 +28,7 @@ class WattsApi:
             token = self.getLoginToken(True)
             return token is not None
         except Exception as exception:
-            _LOGGER.exception("Authentication exception " + exception)
+            _LOGGER.exception("Authentication exception {exception}")
             return False
 
     def getLoginToken(self, forcelogin = False):
