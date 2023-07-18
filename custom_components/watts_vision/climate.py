@@ -87,7 +87,7 @@ class WattsThermostat(ClimateEntity):
         self.id = id
         self.zone = zone
         self.deviceID = deviceID
-        self._name = "Thermostat" + zone
+        self._name = "Thermostat " + zone
         self._available = True
         self._attr_extra_state_attributes = {"previous_gv_mode": "0"}
 
@@ -145,7 +145,7 @@ class WattsThermostat(ClimateEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat" + self.zone,
+            "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
         }
 

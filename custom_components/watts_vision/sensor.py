@@ -108,7 +108,7 @@ class WattsVisionThermostatSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat" + self.zone,
+            "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
         }
 
@@ -177,7 +177,7 @@ class WattsVisionTemperatureSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat" + self.zone,
+            "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
         }
 
@@ -236,7 +236,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat" + self.zone,
+            "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
         }
 

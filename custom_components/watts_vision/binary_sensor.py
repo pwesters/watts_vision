@@ -53,7 +53,7 @@ class WattsVisionHeatingBinarySensor(BinarySensorEntity):
         self.smartHome = smartHome
         self.id = id
         self.zone = zone
-        self._name = "Heating" + zone
+        self._name = "Heating " + zone
         self._state: bool = False
         self._available = True
 
@@ -80,7 +80,7 @@ class WattsVisionHeatingBinarySensor(BinarySensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat" + self.zone,
+            "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
         }
 
