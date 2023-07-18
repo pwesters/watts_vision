@@ -25,18 +25,18 @@ class WattsApi:
     def test_authentication(self) -> bool:
         """Test if we can authenticate with the host."""
         try:
-            token = self.getLoginToken()
+            token = self.getLoginToken(True)
             return token is not None
         except Exception as exception:
             _LOGGER.exception("Authentication exception " + exception)
             return False
 
-    def getLoginToken(self):
+    def getLoginToken(self, forcelogin = False):
         """Get the access token for the Watts Smarthome API through login or refresh"""
 
         now = datetime.now()
 
-        if (not self._refresh_expires_in or self._refresh_expires_in <= now):
+        if (forcelogin or not self._refresh_expires_in or self._refresh_expires_in <= now):
             _LOGGER.debug("Login to get an access token.")
             payload = {
                 "grant_type": "password",
