@@ -36,8 +36,8 @@ async def async_setup_entry(
                                 WattsVisionHeatingBinarySensor(
                                     wattsClient,
                                     smartHomes[y]["smarthome_id"],
-                                            smartHomes[y]["zones"][z]["devices"][x]["id"],
-                                            smartHomes[y]["zones"][z]["zone_label"]
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
                                 )
                             )
 
