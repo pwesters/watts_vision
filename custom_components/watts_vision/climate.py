@@ -319,7 +319,6 @@ class WattsThermostat(ClimateEntity):
                 value = str(int(self._attr_extra_state_attributes["consigne_confort"] * 10))
         else:
             self._attr_extra_state_attributes["previous_gv_mode"] = self._attr_extra_state_attributes["gv_mode"]
-            preset_mode = PRESET_OFF
 
         # reloading the devices may take some time, meanwhile set the new values manually
         for y in range(len(self.client._smartHomeData)):
