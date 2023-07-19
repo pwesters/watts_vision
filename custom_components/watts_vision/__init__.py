@@ -21,13 +21,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     client = WattsApi(hass, entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD])
-    
+
     try:
         await hass.async_add_executor_job(client.getLoginToken)
     except Exception as exception:  # pylint: disable=broad-except
         _LOGGER.exception(exception)
         return False
-    
+
     await hass.async_add_executor_job(client.loadData)
 
     hass.data[DOMAIN][API_CLIENT] = client

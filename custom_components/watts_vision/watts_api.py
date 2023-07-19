@@ -21,7 +21,6 @@ class WattsApi:
         self._refresh_expires_in = None
         self._smartHomeData = {}
 
-    
     def test_authentication(self) -> bool:
         """Test if we can authenticate with the host."""
         try:
@@ -85,7 +84,7 @@ class WattsApi:
     def loadSmartHomes(self, firstTry: bool = True):
         """Load the user data"""
         self._refresh_token_if_expired()
-        
+
         headers = {"Authorization": f"Bearer {self._token}"}
         payload = {"token": "true", "email": self._username, "lang": "nl_NL"}
 
@@ -97,13 +96,13 @@ class WattsApi:
 
         if self.check_response(user_data_result):
             return user_data_result.json()["data"]["smarthomes"]
-            
+
         return None
 
     def loadDevices(self, smarthome: str, firstTry: bool = True):
         """Load devices for smart home"""
         self._refresh_token_if_expired()
-        
+
         headers = {"Authorization": f"Bearer {self._token}"}
         payload = {"token": "true", "smarthome_id": smarthome, "lang": "nl_NL"}
 
@@ -115,9 +114,9 @@ class WattsApi:
 
         if self.check_response(devices_result):
             return devices_result.json()["data"]["zones"]
-            
+
         return None
-    
+
     def _refresh_token_if_expired(self) -> None:
         """Check if token is expired and request a new one."""
         now = datetime.now()
@@ -174,7 +173,7 @@ class WattsApi:
         firstTry: bool = True,
     ):
         self._refresh_token_if_expired()
-        
+
         headers = {"Authorization": f"Bearer {self._token}"}
         payload = {
                 "token": "true",
@@ -248,7 +247,7 @@ class WattsApi:
 
         if self.check_response(last_connection_result):
             return last_connection_result.json()["data"]
-            
+
         return None
 
     @staticmethod
