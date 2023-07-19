@@ -248,32 +248,22 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
 
         if smartHomeDevice["gv_mode"] == "0":
-            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-                self._state = math.floor(((float(smartHomeDevice["consigne_confort"]) / 10) - 32) / 1.8 * 10) / 10
-            else: 
-                self._state = float(smartHomeDevice["consigne_confort"]) / 10
+            self._state = smartHomeDevice["consigne_confort"]
         if smartHomeDevice["gv_mode"] == "1":
             self._state = NaN
         if smartHomeDevice["gv_mode"] == "2":
-            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-                self._state = math.floor(((float(smartHomeDevice["consigne_hg"]) / 10) - 32) / 1.8 * 10) / 10
-            else: 
-                self._state = float(smartHomeDevice["consigne_hg"]) / 10
+            self._state = smartHomeDevice["consigne_hg"]
         if smartHomeDevice["gv_mode"] == "3":
-            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-                self._state = math.floor(((float(smartHomeDevice["consigne_eco"]) / 10) - 32) / 1.8 * 10) / 10
-            else: 
-                self._state = float(smartHomeDevice["consigne_eco"]) / 10
+            self._state = smartHomeDevice["consigne_eco"]
         if smartHomeDevice["gv_mode"] == "4":
-            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-                self._state = math.floor(((float(smartHomeDevice["consigne_boost"]) / 10) - 32) / 1.8 * 10) / 10
-            else: 
-                self._state = float(smartHomeDevice["consigne_boost"]) / 10
+            self._state = smartHomeDevice["consigne_boost"]
         if smartHomeDevice["gv_mode"] == "11":
+            self._state = smartHomeDevice["consigne_manuel"]
+        if self._state != NaN:
             if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-                self._state = math.floor(((float(smartHomeDevice["consigne_manuel"]) / 10) - 32) / 1.8 * 10) / 10
-            else: 
-                self._state = float(smartHomeDevice["consigne_manuel"]) / 10
+                self._state = round((int(self._state) - 320) * 5 / 9 / 10, 1)
+            else:
+                self._state = int(self._state) / 10
 
         # except:
         #     self._available = False
