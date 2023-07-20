@@ -187,9 +187,9 @@ class WattsVisionTemperatureSensor(SensorEntity):
         # try:
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
         if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-            self._state = math.floor(((float(smartHomeDevice["temperature_air"]) / 10) - 32) / 1.8 * 10) / 10
+            self._state = round((int(smartHomeDevice["temperature_air"]) - 320) * 5 / 9 / 10, 1)
         else:
-            self._state = float(smartHomeDevice["temperature_air"]) / 10
+            self._state = int(smartHomeDevice["temperature_air"]) / 10
         # except:
         #     self._available = False
         #     _LOGGER.exception("Error retrieving data.")
