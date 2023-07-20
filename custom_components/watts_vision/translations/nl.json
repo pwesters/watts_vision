@@ -1,0 +1,36 @@
+{
+  "title": "Watts Vision",
+  "config": {
+    "error": {
+      "invalid_auth": "E-mail en/of wachtwoord ongeldig.",
+      "unknown": "Er is een onverwachte uitzondering opgetreden.",
+      "username_exists": "Een account met het opgegeven e-mailadres is al toegevoegd."
+    },
+    "step": {
+      "user": {
+        "data": {
+          "username": "Email",
+          "password": "Password"
+        },
+        "description": "Verbinding maken met de Watts Visie API"
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "invalid_auth": "E-mail en/of wachtwoord ongeldig.",
+      "unknown": "Er is een onverwachte uitzondering opgetreden.",
+      "username_exists": "Een account met het opgegeven e-mailadres is al toegevoegd."
+    },
+    "step": {
+      "init": {
+        "data": {
+          "username": "Email",
+          "password": "Wachtwoord"
+        },
+        "title": "Watts Vision - Account herconfiguratie",
+        "description": "Accountgegevens opnieuw configureren en opnieuw verbinden met de Watts Visie API"
+      }
+    }
+  }
+}
