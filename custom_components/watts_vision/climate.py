@@ -22,29 +22,21 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import TEMP_FAHRENHEIT
 from homeassistant.helpers.typing import HomeAssistantType
 
-from .const import API_CLIENT, DOMAIN, PRESET_DEFROST, PRESET_OFF, PRESET_PROGRAM
+from .const import (
+    API_CLIENT,
+    DOMAIN,
+    PRESET_BOOST,
+    PRESET_COMFORT,
+    PRESET_ECO,
+    PRESET_DEFROST,
+    PRESET_OFF,
+    PRESET_PROGRAM,
+    PRESET_MODE_MAP,
+    PRESET_MODE_REVERSE_MAP,
+)
 from .watts_api import WattsApi
 
 _LOGGER = logging.getLogger(__name__)
-
-PRESET_MODE_MAP = {
-    "0": PRESET_COMFORT,
-    "1": PRESET_OFF,
-    "2": PRESET_DEFROST,
-    "3": PRESET_ECO,
-    "4": PRESET_BOOST,
-    "11": PRESET_PROGRAM,
-}
-
-PRESET_MODE_REVERSE_MAP = {
-    PRESET_COMFORT: "0",
-    PRESET_OFF: "1",
-    PRESET_DEFROST: "2",
-    PRESET_ECO: "3",
-    PRESET_BOOST: "4",
-    PRESET_PROGRAM: "11",
-}
-
 
 async def async_setup_entry(
     hass: HomeAssistantType,
@@ -125,14 +117,7 @@ class WattsThermostat(ClimateEntity):
     @property
     def preset_modes(self) -> list[str]:
         """Return the available presets."""
-        modes = []
-        modes.append(PRESET_MODE_MAP["0"])
-        modes.append(PRESET_MODE_MAP["1"])
-        modes.append(PRESET_MODE_MAP["2"])
-        modes.append(PRESET_MODE_MAP["3"])
-        modes.append(PRESET_MODE_MAP["4"])
-        modes.append(PRESET_MODE_MAP["11"])
-        return modes
+        return list(PRESET_MODE_MAP.values())
 
     @property
     def preset_mode(self) -> str:

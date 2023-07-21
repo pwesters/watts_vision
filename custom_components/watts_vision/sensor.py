@@ -10,7 +10,7 @@ from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.helpers.typing import HomeAssistantType
 from numpy import NaN
 
-from .const import API_CLIENT, DOMAIN
+from .const import API_CLIENT, DOMAIN, PRESET_MODE_MAP
 from .watts_api import WattsApi
 from .central_unit import WattsVisionLastCommunicationSensor
 
@@ -101,6 +101,14 @@ class WattsVisionThermostatSensor(SensorEntity):
         return self._state
 
     @property
+    def device_class(self):
+        return SensorDeviceClass.ENUM
+
+    @property
+    def options(self):
+        return list(PRESET_MODE_MAP.values())
+
+    @property
     def device_info(self):
         return {
             "identifiers": {
@@ -117,18 +125,7 @@ class WattsVisionThermostatSensor(SensorEntity):
         # try:
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
 
-        if smartHomeDevice["gv_mode"] == "0":
-            self._state = "Comfort"
-        if smartHomeDevice["gv_mode"] == "1":
-            self._state = "Off"
-        if smartHomeDevice["gv_mode"] == "2":
-            self._state = "Frost protection"
-        if smartHomeDevice["gv_mode"] == "3":
-            self._state = "Eco"
-        if smartHomeDevice["gv_mode"] == "4":
-            self._state = "Boost"
-        if smartHomeDevice["gv_mode"] == "11":
-            self._state = "Program"
+        self._state = PRESET_MODE_MAP[smartHomeDevice["gv_mode"]]
 
         # except:
         #     self._available = False
