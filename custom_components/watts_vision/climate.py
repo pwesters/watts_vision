@@ -159,48 +159,28 @@ class WattsThermostat(ClimateEntity):
             else:
                 self._attr_hvac_action = CURRENT_HVAC_HEAT
 
+        if smartHomeDevice["heat_cool"] == "1":
+            self._attr_hvac_mode = HVAC_MODE_COOL
+        else:
+            self._attr_hvac_mode = HVAC_MODE_HEAT
+        self._attr_preset_mode = PRESET_MODE_MAP[smartHomeDevice["gv_mode"]]
+
         if smartHomeDevice["gv_mode"] == "0":
-            if smartHomeDevice["heat_cool"] == "1":
-                self._attr_hvac_mode = HVAC_MODE_COOL
-            else:
-                self._attr_hvac_mode = HVAC_MODE_HEAT
-            self._attr_preset_mode = PRESET_MODE_MAP["0"]
             self._attr_target_temperature = (
                 float(smartHomeDevice["consigne_confort"]) / 10
             )
-        if smartHomeDevice["gv_mode"] == "1":
+        elif smartHomeDevice["gv_mode"] == "1":
             self._attr_hvac_mode = HVAC_MODE_OFF
-            self._attr_preset_mode = PRESET_MODE_MAP["1"]
             self._attr_target_temperature = None
-        if smartHomeDevice["gv_mode"] == "2":
-            if smartHomeDevice["heat_cool"] == "1":
-                self._attr_hvac_mode = HVAC_MODE_COOL
-            else:
-                self._attr_hvac_mode = HVAC_MODE_HEAT
-            self._attr_preset_mode = PRESET_MODE_MAP["2"]
+        elif smartHomeDevice["gv_mode"] == "2":
             self._attr_target_temperature = float(smartHomeDevice["consigne_hg"]) / 10
-        if smartHomeDevice["gv_mode"] == "3":
-            if smartHomeDevice["heat_cool"] == "1":
-                self._attr_hvac_mode = HVAC_MODE_COOL
-            else:
-                self._attr_hvac_mode = HVAC_MODE_HEAT
-            self._attr_preset_mode = PRESET_MODE_MAP["3"]
+        elif smartHomeDevice["gv_mode"] == "3":
             self._attr_target_temperature = float(smartHomeDevice["consigne_eco"]) / 10
-        if smartHomeDevice["gv_mode"] == "4":
-            if smartHomeDevice["heat_cool"] == "1":
-                self._attr_hvac_mode = HVAC_MODE_COOL
-            else:
-                self._attr_hvac_mode = HVAC_MODE_HEAT
-            self._attr_preset_mode = PRESET_MODE_MAP["4"]
+        elif smartHomeDevice["gv_mode"] == "4":
             self._attr_target_temperature = (
                 float(smartHomeDevice["consigne_boost"]) / 10
             )
-        if smartHomeDevice["gv_mode"] == "11":
-            if smartHomeDevice["heat_cool"] == "1":
-                self._attr_hvac_mode = HVAC_MODE_COOL
-            else:
-                self._attr_hvac_mode = HVAC_MODE_HEAT
-            self._attr_preset_mode = PRESET_MODE_MAP["11"]
+        elif smartHomeDevice["gv_mode"] == "11":
             self._attr_target_temperature = (
                 float(smartHomeDevice["consigne_manuel"]) / 10
             )
