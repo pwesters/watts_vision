@@ -287,9 +287,9 @@ class WattsThermostat(ClimateEntity):
             if self.client._smartHomeData[y]["smarthome_id"] == self.smartHome:
                 for z in range(len(self.client._smartHomeData[y]["zones"])):
                     for x in range(len(self.client._smartHomeData[y]["zones"][z]["devices"])):
-                        if (self.client._smartHomeData[y]["zone"][z]["devices"][x]["id"] == self.id):
-                            self.client._smartHomeData[y]["zone"][z]["devices"][x]["gv_mode"] = PRESET_MODE_REVERSE_MAP[preset_mode]
-                            self.client._smartHomeData[y]["zone"][z]["devices"][x]["consigne_manuel"] = value
+                        if (self.client._smartHomeData[y]["zones"][z]["devices"][x]["id"] == self.id):
+                            self.client._smartHomeData[y]["zones"][z]["devices"][x]["gv_mode"] = PRESET_MODE_REVERSE_MAP[preset_mode]
+                            self.client._smartHomeData[y]["zones"][z]["devices"][x]["consigne_manuel"] = value
 
         func = functools.partial(
             self.client.pushTemperature,
