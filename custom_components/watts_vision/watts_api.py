@@ -61,7 +61,7 @@ class WattsApi:
                     request_token_result.status_code
                 )
             )
-            raise None
+            return None
 
     def loadData(self):
         """load data from api"""
