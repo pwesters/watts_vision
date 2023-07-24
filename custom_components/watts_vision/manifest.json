@@ -1,12 +1,12 @@
 {
+  "domain": "watts_vision",
+  "name": "Watts Vision",
   "codeowners": ["@pwesters"],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/pwesters/watts_vision",
-  "issue_tracker": "https://github.com/pwesters/watts_vision/issues",
-  "domain": "watts_vision",
   "iot_class": "cloud_polling",
-  "name": "Watts Vision",
+  "issue_tracker": "https://github.com/pwesters/watts_vision/issues",
   "requirements": [],
   "version": "0.2.6"
 }
