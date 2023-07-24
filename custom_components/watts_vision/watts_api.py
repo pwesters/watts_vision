@@ -61,7 +61,7 @@ class WattsApi:
                     request_token_result.status_code
                 )
             )
-            return None
+            raise None
 
     def loadData(self):
         """load data from api"""
@@ -178,6 +178,18 @@ class WattsApi:
             if self._smartHomeData[y]["smarthome_id"] == smarthome:
                 for x in range(len(self._smartHomeData[y]["devices"])):
                     if self._smartHomeData[y]["devices"][x]["id"] == deviceId:
+                        return self._smartHomeData[y]["devices"][x]
+
+        return None
+
+    def setDevice(self, smarthome: str, deviceId: str, newState: str):
+        """Set specific device"""
+        for y in range(len(self._smartHomeData)):
+            if self._smartHomeData[y]["smarthome_id"] == smarthome:
+                for x in range(len(self._smartHomeData[y]["devices"])):
+                    if self._smartHomeData[y]["devices"][x]["id"] == deviceId:
+                        # If device is found, overwrite it with the new state
+                        self._smartHomeData[y]["devices"][x] = newState
                         return self._smartHomeData[y]["devices"][x]
 
         return None
