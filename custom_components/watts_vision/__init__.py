@@ -21,13 +21,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     client = WattsApi(hass, entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD])
-    
+
     try:
         await hass.async_add_executor_job(client.getLoginToken)
     except Exception as exception:  # pylint: disable=broad-except
         _LOGGER.exception(exception)
         return False
-    
+
     await hass.async_add_executor_job(client.loadData)
 
     hass.data[DOMAIN][API_CLIENT] = client
@@ -43,3 +43,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async_track_time_interval(hass, refresh_devices, SCAN_INTERVAL)
 
     return True
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    _LOGGER.debug("Unloading Watts Vision")
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        hass.data[DOMAIN].pop(API_CLIENT)
+    return unload_ok

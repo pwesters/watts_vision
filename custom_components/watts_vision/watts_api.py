@@ -18,42 +18,53 @@ class WattsApi:
         self._token = None
         self._token_expires = None
         self._refresh_token = None
+        self._refresh_expires_in = None
         self._smartHomeData = {}
 
-    
     def test_authentication(self) -> bool:
         """Test if we can authenticate with the host."""
         try:
-            token = self.getLoginToken()
+            token = self.getLoginToken(True)
             return token is not None
         except Exception as exception:
-            _LOGGER.exception("Authentication exception " + exception)
+            _LOGGER.exception("Authentication exception {exception}")
             return False
 
-    def getLoginToken(self):
-        """Get the login token for the Watts Smarthome API"""
-
-        payload = {
-            "grant_type": "password",
-            "username": self._username,
-            "password": self._password,
-            "client_id": "app-front",
-        }
+    def getLoginToken(self, forcelogin = False):
+        """Get the access token for the Watts Smarthome API through login or refresh"""
 
         now = datetime.now()
 
-        _LOGGER.debug("Trying to get an access token.")
+        if (forcelogin or not self._refresh_expires_in or self._refresh_expires_in <= now):
+            _LOGGER.debug("Login to get an access token.")
+            payload = {
+                "grant_type": "password",
+                "username": self._username,
+                "password": self._password,
+                "client_id": "app-front",
+            }
+        elif (self._token_expires <= now):
+            _LOGGER.debug("Refreshing access token")
+            payload = {
+                "grant_type": "refresh_token",
+                "refresh_token": self._refresh_token,
+                "client_id": "app-front",
+            }
+        else:
+            _LOGGER.debug("Getting token called unneeded.")
+
         request_token_result = requests.post(
             url="https://smarthome.wattselectronics.com/auth/realms/watts/protocol/openid-connect/token",
             data=payload,
         )
 
         if request_token_result.status_code == 200:
-            _LOGGER.debug("Requesting access token successful")
             token = request_token_result.json()["access_token"]
             self._token = token
             self._token_expires = now + timedelta(seconds=request_token_result.json()["expires_in"])
             self._refresh_token = request_token_result.json()["refresh_token"]
+            self._refresh_expires_in = now + timedelta(seconds=request_token_result.json()["refresh_expires_in"])
+            _LOGGER.debug("Received access token. New refresh_token needed on {}".format(self._refresh_expires_in))
             return token
         else:
             _LOGGER.error(
@@ -68,18 +79,12 @@ class WattsApi:
         smarthomes = self.loadSmartHomes()
         self._smartHomeData = smarthomes
 
-        """load devices for each smart home"""
-        if self._smartHomeData is not None:
-            for y in range(len(self._smartHomeData)):
-                devices = self.loadDevices(self._smartHomeData[y]["smarthome_id"])
-                self._smartHomeData[y]["devices"] = devices
-
-        return True
+        return self.reloadDevices()
 
     def loadSmartHomes(self, firstTry: bool = True):
         """Load the user data"""
         self._refresh_token_if_expired()
-        
+
         headers = {"Authorization": f"Bearer {self._token}"}
         payload = {"token": "true", "email": self._username, "lang": "nl_NL"}
 
@@ -91,13 +96,13 @@ class WattsApi:
 
         if self.check_response(user_data_result):
             return user_data_result.json()["data"]["smarthomes"]
-            
+
         return None
 
     def loadDevices(self, smarthome: str, firstTry: bool = True):
         """Load devices for smart home"""
         self._refresh_token_if_expired()
-        
+
         headers = {"Authorization": f"Bearer {self._token}"}
         payload = {"token": "true", "smarthome_id": smarthome, "lang": "nl_NL"}
 
@@ -108,63 +113,26 @@ class WattsApi:
         )
 
         if self.check_response(devices_result):
-            return devices_result.json()["data"]["devices"]
-            
+            return devices_result.json()["data"]["zones"]
+
         return None
-    
+
     def _refresh_token_if_expired(self) -> None:
         """Check if token is expired and request a new one."""
-        if (
-            self._token_expires
-            and self._refresh_token
-            and self._token_expires <= datetime.now()
-        ):
-            self.refresh_token()
-    
-    def refresh_token(self) -> None:
-        """
-        Update the access and the refresh token.
-        """
-
-        if not self._refresh_token:
-            raise ValueError("No refresh token provided. Login method must be used.")
-
-        payload = {
-            "grant_type": "refresh_token",
-            "refresh_token": self._refresh_token,
-            "client_id": "app-front",
-        }
-        
-        # Request access token
         now = datetime.now()
 
-        _LOGGER.debug("Trying to refresh the access token.")
-        request_token_result = request_token_result = requests.post(
-            url="https://smarthome.wattselectronics.com/auth/realms/watts/protocol/openid-connect/token",
-            data=payload,
-        )
-
-        if request_token_result.status_code == 200:
-            _LOGGER.debug("Refreshing access token successful")
-            token = request_token_result.json()["access_token"]
-            self._token = token
-            self._token_expires = now + timedelta(seconds=request_token_result.json()["expires_in"])
-            self._refresh_token = request_token_result.json()["refresh_token"]
-            return token
-        else:
-            _LOGGER.error(
-                "Something went wrong refreshing the token: {}".format(
-                    request_token_result.status_code
-                )
-            )
-            raise None
+        if (self._token_expires and self._token_expires <= now
+            or
+            self._refresh_expires_in and self._refresh_expires_in <= now
+        ):
+            self.getLoginToken()
 
     def reloadDevices(self):
         """load devices for each smart home"""
         if self._smartHomeData is not None:
             for y in range(len(self._smartHomeData)):
-                devices = self.loadDevices(self._smartHomeData[y]["smarthome_id"])
-                self._smartHomeData[y]["devices"] = devices
+                zones = self.loadDevices(self._smartHomeData[y]["smarthome_id"])
+                self._smartHomeData[y]["zones"] = zones
 
         return True
 
@@ -176,9 +144,23 @@ class WattsApi:
         """Get specific device"""
         for y in range(len(self._smartHomeData)):
             if self._smartHomeData[y]["smarthome_id"] == smarthome:
-                for x in range(len(self._smartHomeData[y]["devices"])):
-                    if self._smartHomeData[y]["devices"][x]["id"] == deviceId:
-                        return self._smartHomeData[y]["devices"][x]
+                for z in range(len(self._smartHomeData[y]["zones"])):
+                    for x in range(len(self._smartHomeData[y]["zones"][z]["devices"])):
+                        if self._smartHomeData[y]["zones"][z]["devices"][x]["id"] == deviceId:
+                            return self._smartHomeData[y]["zones"][z]["devices"][x]
+
+        return None
+
+    def setDevice(self, smarthome: str, deviceId: str, newState: str):
+        """Set specific device"""
+        for y in range(len(self._smartHomeData)):
+            if self._smartHomeData[y]["smarthome_id"] == smarthome:
+                for z in range(len(self._smartHomeData[y]["zones"])):
+                    for x in range(len(self._smartHomeData[y]["zones"][z]["devices"])):
+                        if self._smartHomeData[y]["zones"][z]["devices"][x]["id"] == deviceId:
+                            # If device is found, overwrite it with the new state
+                            self._smartHomeData[y]["zones"][z]["devices"][x] = newState
+                            return self._smartHomeData[y]["zones"][z]["devices"][x]
 
         return None
 
@@ -203,91 +185,51 @@ class WattsApi:
         firstTry: bool = True,
     ):
         self._refresh_token_if_expired()
-        
+
         headers = {"Authorization": f"Bearer {self._token}"}
-        payload = {}
-        if gvMode == "0":
-            payload = {
+        payload = {
                 "token": "true",
                 "context": "1",
                 "smarthome_id": smarthome,
                 "query[id_device]": deviceID,
                 "query[time_boost]": "0",
+                "query[gv_mode]": gvMode,
+                "query[nv_mode]": gvMode,
+                "peremption": "15000",
+                "lang": "nl_NL",
+            }
+        extrapayload = {}
+        if gvMode == "0":
+            extrapayload = {
                 "query[consigne_confort]": value,
                 "query[consigne_manuel]": value,
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
-                "peremption": "15000",
-                "lang": "nl_NL",
             }
-        if gvMode == "1":
-            payload = {
-                "token": "true",
-                "context": "1",
-                "smarthome_id": smarthome,
-                "query[id_device]": deviceID,
-                "query[time_boost]": "0",
+        elif gvMode == "1":
+            extrapayload = {
                 "query[consigne_manuel]": "0",
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
-                "peremption": "15000",
-                "lang": "nl_NL",
             }
-        if gvMode == "2":
-            payload = {
-                "token": "true",
-                "context": "1",
-                "smarthome_id": smarthome,
-                "query[id_device]": deviceID,
-                "query[time_boost]": "0",
+        elif gvMode == "2":
+            extrapayload = {
                 "query[consigne_hg]": "446",
                 "query[consigne_manuel]": "446",
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
                 "peremption": "20000",
-                "lang": "nl_NL",
             }
-        if gvMode == "3":
-            payload = {
-                "token": "true",
-                "context": "1",
-                "smarthome_id": smarthome,
-                "query[id_device]": deviceID,
-                "query[time_boost]": "0",
+        elif gvMode == "3":
+            extrapayload = {
                 "query[consigne_eco]": value,
                 "query[consigne_manuel]": value,
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
-                "peremption": "15000",
-                "lang": "nl_NL",
             }
-        if gvMode == "4":
-            payload = {
-                "token": "true",
-                "context": "1",
-                "smarthome_id": smarthome,
-                "query[id_device]": deviceID,
+        elif gvMode == "4":
+            extrapayload = {
                 "query[time_boost]": "7200",
                 "query[consigne_boost]": value,
                 "query[consigne_manuel]": value,
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
-                "peremption": "15000",
-                "lang": "nl_NL",
             }
-        if gvMode == "11":
-            payload = {
-                "token": "true",
-                "context": "1",
-                "smarthome_id": smarthome,
-                "query[id_device]": deviceID,
-                "query[time_boost]": "0",
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
+        elif gvMode == "11":
+            extrapayload = {
                 "query[consigne_manuel]": value,
-                "peremption": "15000",
-                "lang": "nl_NL",
             }
+        payload.update(extrapayload)
 
         push_result = requests.post(
             url="https://smarthome.wattselectronics.com/api/v0.1/human/query/push/",
@@ -317,7 +259,7 @@ class WattsApi:
 
         if self.check_response(last_connection_result):
             return last_connection_result.json()["data"]
-            
+
         return None
 
     @staticmethod
@@ -343,4 +285,8 @@ class WattsApi:
         if response.status_code == 401:
             # raise UnauthorizedException("Unauthorized")
             _LOGGER.error("Unauthorized")
+            return False
+        else:
+            # raise UnHandledStatuException(response.status_code)
+            _LOGGER.error("Unhandled status code {}".format(response_status_code))
             return False

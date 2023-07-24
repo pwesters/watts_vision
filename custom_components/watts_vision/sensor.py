@@ -10,8 +10,9 @@ from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.helpers.typing import HomeAssistantType
 from numpy import NaN
 
-from .const import API_CLIENT, DOMAIN
+from .const import API_CLIENT, DOMAIN, PRESET_MODE_MAP
 from .watts_api import WattsApi
+from .central_unit import WattsVisionLastCommunicationSensor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,33 +34,39 @@ async def async_setup_entry(
 
     if smartHomes is not None:
         for y in range(len(smartHomes)):
-            if smartHomes[y]["devices"] is not None:
-                for x in range(len(smartHomes[y]["devices"])):
-                    sensors.append(
-                        WattsVisionThermostatSensor(
-                            wattsClient,
-                            smartHomes[y]["smarthome_id"],
-                            smartHomes[y]["devices"][x]["id"],
-                        )
-                    )
-                    sensors.append(
-                        WattsVisionTemperatureSensor(
-                            wattsClient,
-                            smartHomes[y]["smarthome_id"],
-                            smartHomes[y]["devices"][x]["id"],
-                        )
-                    )
-                    sensors.append(
-                        WattsVisionSetTemperatureSensor(
-                            wattsClient,
-                            smartHomes[y]["smarthome_id"],
-                            smartHomes[y]["devices"][x]["id"],
-                        )
-                    )
+            if smartHomes[y]["zones"] is not None:
+                for z in range(len(smartHomes[y]["zones"])):
+                    if smartHomes[y]["zones"][z]["devices"] is not None:
+                        for x in range(len(smartHomes[y]["zones"][z]["devices"])):
+                            sensors.append(
+                                WattsVisionThermostatSensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
+                                )
+                            )
+                            sensors.append(
+                                WattsVisionTemperatureSensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
+                                )
+                            )
+                            sensors.append(
+                                WattsVisionSetTemperatureSensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
+                                )
+                            )
             sensors.append(
                 WattsVisionLastCommunicationSensor(
                     wattsClient,
-                    smartHomes[y]["smarthome_id"]
+                    smartHomes[y]["smarthome_id"],
+                    smartHomes[y]["label"]
                 )
             )
 
@@ -69,12 +76,13 @@ async def async_setup_entry(
 class WattsVisionThermostatSensor(SensorEntity):
     """Representation of a Watts Vision thermostat."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "Heating mode"
+        self.zone = zone
+        self._name = "Heating mode " + zone
         self._state = None
         self._available = True
 
@@ -93,6 +101,14 @@ class WattsVisionThermostatSensor(SensorEntity):
         return self._state
 
     @property
+    def device_class(self):
+        return SensorDeviceClass.ENUM
+
+    @property
+    def options(self):
+        return list(PRESET_MODE_MAP.values())
+
+    @property
     def device_info(self):
         return {
             "identifiers": {
@@ -100,26 +116,16 @@ class WattsVisionThermostatSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
+            "via_device": (DOMAIN, self.smartHome)
         }
 
     async def async_update(self):
         # try:
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
 
-        if smartHomeDevice["gv_mode"] == "0":
-            self._state = "Comfort"
-        if smartHomeDevice["gv_mode"] == "1":
-            self._state = "Off"
-        if smartHomeDevice["gv_mode"] == "2":
-            self._state = "Frost protection"
-        if smartHomeDevice["gv_mode"] == "3":
-            self._state = "Eco"
-        if smartHomeDevice["gv_mode"] == "4":
-            self._state = "Boost"
-        if smartHomeDevice["gv_mode"] == "11":
-            self._state = "Program"
+        self._state = PRESET_MODE_MAP[smartHomeDevice["gv_mode"]]
 
         # except:
         #     self._available = False
@@ -129,12 +135,13 @@ class WattsVisionThermostatSensor(SensorEntity):
 class WattsVisionTemperatureSensor(SensorEntity):
     """Representation of a Watts Vision temperature sensor."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "Air temperature"
+        self.zone = zone
+        self._name = "Air temperature " + zone
         self._state = None
         self._available = True
 
@@ -168,17 +175,18 @@ class WattsVisionTemperatureSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
+            "via_device": (DOMAIN, self.smartHome)
         }
 
     async def async_update(self):
         # try:
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
         if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-            self._state = math.floor(((float(smartHomeDevice["temperature_air"]) / 10) - 32) / 1.8 * 10) / 10
+            self._state = round((int(smartHomeDevice["temperature_air"]) - 320) * 5 / 9 / 10, 1)
         else:
-            self._state = float(smartHomeDevice["temperature_air"]) / 10
+            self._state = int(smartHomeDevice["temperature_air"]) / 10
         # except:
         #     self._available = False
         #     _LOGGER.exception("Error retrieving data.")
@@ -187,12 +195,13 @@ class WattsVisionTemperatureSensor(SensorEntity):
 class WattsVisionSetTemperatureSensor(SensorEntity):
     """Representation of a Watts Vision temperature sensor."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "Target temperature"
+        self.zone = zone
+        self._name = "Target temperature " + zone
         self._state = None
         self._available = True
 
@@ -226,8 +235,9 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
+            "via_device": (DOMAIN, self.smartHome)
         }
 
     async def async_update(self):
@@ -235,79 +245,23 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
 
         if smartHomeDevice["gv_mode"] == "0":
-            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-                self._state = math.floor(((float(smartHomeDevice["consigne_confort"]) / 10) - 32) / 1.8 * 10) / 10
-            else: 
-                self._state = float(smartHomeDevice["consigne_confort"]) / 10
+            self._state = smartHomeDevice["consigne_confort"]
         if smartHomeDevice["gv_mode"] == "1":
             self._state = NaN
         if smartHomeDevice["gv_mode"] == "2":
-            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-                self._state = math.floor(((float(smartHomeDevice["consigne_hg"]) / 10) - 32) / 1.8 * 10) / 10
-            else: 
-                self._state = float(smartHomeDevice["consigne_hg"]) / 10
+            self._state = smartHomeDevice["consigne_hg"]
         if smartHomeDevice["gv_mode"] == "3":
-            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-                self._state = math.floor(((float(smartHomeDevice["consigne_eco"]) / 10) - 32) / 1.8 * 10) / 10
-            else: 
-                self._state = float(smartHomeDevice["consigne_eco"]) / 10
+            self._state = smartHomeDevice["consigne_eco"]
         if smartHomeDevice["gv_mode"] == "4":
-            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-                self._state = math.floor(((float(smartHomeDevice["consigne_boost"]) / 10) - 32) / 1.8 * 10) / 10
-            else: 
-                self._state = float(smartHomeDevice["consigne_boost"]) / 10
+            self._state = smartHomeDevice["consigne_boost"]
         if smartHomeDevice["gv_mode"] == "11":
+            self._state = smartHomeDevice["consigne_manuel"]
+        if self._state != NaN:
             if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-                self._state = math.floor(((float(smartHomeDevice["consigne_manuel"]) / 10) - 32) / 1.8 * 10) / 10
-            else: 
-                self._state = float(smartHomeDevice["consigne_manuel"]) / 10
+                self._state = round((int(self._state) - 320) * 5 / 9 / 10, 1)
+            else:
+                self._state = int(self._state) / 10
 
         # except:
         #     self._available = False
         #     _LOGGER.exception("Error retrieving data.")
-
-
-class WattsVisionLastCommunicationSensor(SensorEntity):
-    def __init__(self, wattsClient: WattsApi, smartHome: str):
-        super().__init__()
-        self.client = wattsClient
-        self.smartHome = smartHome
-        self._name = "Last communication"
-        self._state = None
-        self._available = True
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique ID of the sensor."""
-        return "last_communication_" + self.smartHome
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._name
-
-    @property
-    def state(self) -> Optional[str]:
-        return self._state
-
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                # Serial numbers are unique identifiers within a specific domain
-                (DOMAIN, self.smartHome)
-            },
-            "manufacturer": "Watts",
-            "name": "Central Unit",
-            "model": "BT-CT02-RF",
-        }
-
-    async def async_update(self):
-        data = await self.hass.async_add_executor_job(self.client.getLastCommunication, self.smartHome)
-
-        self._state = "{} days, {} hours, {} minutes and {} seconds.".format(
-            data["diffObj"]["days"],
-            data["diffObj"]["hours"],
-            data["diffObj"]["minutes"],
-            data["diffObj"]["seconds"]
-        )

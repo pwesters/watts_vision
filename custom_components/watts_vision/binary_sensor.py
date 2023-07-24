@@ -28,15 +28,18 @@ async def async_setup_entry(
 
     if smartHomes is not None:
         for y in range(len(smartHomes)):
-            if smartHomes[y]["devices"] is not None:
-                for x in range(len(smartHomes[y]["devices"])):
-                    sensors.append(
-                        WattsVisionHeatingBinarySensor(
-                            wattsClient,
-                            smartHomes[y]["smarthome_id"],
-                            smartHomes[y]["devices"][x]["id"],
-                        )
-                    )
+            if smartHomes[y]["zones"] is not None:
+                for z in range(len(smartHomes[y]["zones"])):
+                    if smartHomes[y]["zones"][z]["devices"] is not None:
+                        for x in range(len(smartHomes[y]["zones"][z]["devices"])):
+                            sensors.append(
+                                WattsVisionHeatingBinarySensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"]
+                                )
+                            )
 
     async_add_entities(sensors, update_before_add=True)
 
@@ -44,12 +47,13 @@ async def async_setup_entry(
 class WattsVisionHeatingBinarySensor(BinarySensorEntity):
     """Representation of a Watts Vision thermostat."""
 
-    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str):
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
         super().__init__()
         self.client = wattsClient
         self.smartHome = smartHome
         self.id = id
-        self._name = "Heating"
+        self.zone = zone
+        self._name = "Heating " + zone
         self._state: bool = False
         self._available = True
 
@@ -76,8 +80,9 @@ class WattsVisionHeatingBinarySensor(BinarySensorEntity):
                 (DOMAIN, self.id)
             },
             "manufacturer": "Watts",
-            "name": "Thermostat",
+            "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
+            "via_device": (DOMAIN, self.smartHome)
         }
 
     async def async_update(self):
