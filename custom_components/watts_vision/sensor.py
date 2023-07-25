@@ -1,7 +1,6 @@
 """Watts Vision sensor platform."""
 from datetime import timedelta
 import logging
-import math
 from typing import Callable, Optional
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
@@ -10,9 +9,9 @@ from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.helpers.typing import HomeAssistantType
 from numpy import NaN
 
+from .central_unit import WattsVisionLastCommunicationSensor
 from .const import API_CLIENT, DOMAIN, PRESET_MODE_MAP
 from .watts_api import WattsApi
-from .central_unit import WattsVisionLastCommunicationSensor
 
 _LOGGER = logging.getLogger(__name__)
 

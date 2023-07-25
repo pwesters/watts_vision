@@ -4,14 +4,14 @@ from typing import Callable
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
-    CURRENT_HVAC_HEAT,
     CURRENT_HVAC_COOL,
+    CURRENT_HVAC_HEAT,
     CURRENT_HVAC_IDLE,
     CURRENT_HVAC_OFF,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_COOL,
-    HVAC_MODE_OFF,
     HVAC_MODE_AUTO,
+    HVAC_MODE_COOL,
+    HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
     SUPPORT_PRESET_MODE,
     SUPPORT_TARGET_TEMPERATURE,
 )
@@ -24,16 +24,17 @@ from .const import (
     DOMAIN,
     PRESET_BOOST,
     PRESET_COMFORT,
-    PRESET_ECO,
     PRESET_DEFROST,
-    PRESET_OFF,
-    PRESET_PROGRAM,
+    PRESET_ECO,
     PRESET_MODE_MAP,
     PRESET_MODE_REVERSE_MAP,
+    PRESET_OFF,
+    PRESET_PROGRAM,
 )
 from .watts_api import WattsApi
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(
     hass: HomeAssistantType,

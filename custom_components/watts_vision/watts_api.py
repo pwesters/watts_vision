@@ -27,10 +27,10 @@ class WattsApi:
             token = self.getLoginToken(True)
             return token is not None
         except Exception as exception:
-            _LOGGER.exception("Authentication exception {exception}")
+            _LOGGER.exception(f"Authentication exception {exception}")
             return False
 
-    def getLoginToken(self, forcelogin = False):
+    def getLoginToken(self, forcelogin=False):
         """Get the access token for the Watts Smarthome API through login or refresh"""
 
         now = datetime.now()
@@ -64,7 +64,7 @@ class WattsApi:
             self._token_expires = now + timedelta(seconds=request_token_result.json()["expires_in"])
             self._refresh_token = request_token_result.json()["refresh_token"]
             self._refresh_expires_in = now + timedelta(seconds=request_token_result.json()["refresh_expires_in"])
-            _LOGGER.debug("Received access token. New refresh_token needed on {}".format(self._refresh_expires_in))
+            _LOGGER.debug(f"Received access token. New refresh_token needed on {self._refresh_expires_in}")
             return token
         else:
             _LOGGER.error(
@@ -121,7 +121,8 @@ class WattsApi:
         """Check if token is expired and request a new one."""
         now = datetime.now()
 
-        if (self._token_expires and self._token_expires <= now
+        if (
+            self._token_expires and self._token_expires <= now
             or
             self._refresh_expires_in and self._refresh_expires_in <= now
         ):
@@ -164,15 +165,15 @@ class WattsApi:
 
         return None
 
-    def setDevice(self, smarthome: str, deviceId: str, newState: str):
-        """Set specific device"""
-        for y in range(len(self._smartHomeData)):
-            if self._smartHomeData[y]["smarthome_id"] == smarthome:
-                for x in range(len(self._smartHomeData[y]["devices"])):
-                    if self._smartHomeData[y]["devices"][x]["id"] == deviceId:
-                        # If device is found, overwrite it with the new state
-                        self._smartHomeData[y]["devices"][x] = newState
-                        return self._smartHomeData[y]["devices"][x]
+    # def setDevice(self, smarthome: str, deviceId: str, newState: str):
+    #     """Set specific device"""
+    #     for y in range(len(self._smartHomeData)):
+    #         if self._smartHomeData[y]["smarthome_id"] == smarthome:
+    #             for x in range(len(self._smartHomeData[y]["devices"])):
+    #                 if self._smartHomeData[y]["devices"][x]["id"] == deviceId:
+    #                     # If device is found, overwrite it with the new state
+    #                     self._smartHomeData[y]["devices"][x] = newState
+    #                     return self._smartHomeData[y]["devices"][x]
 
         return None
 
@@ -188,16 +189,16 @@ class WattsApi:
 
         headers = {"Authorization": f"Bearer {self._token}"}
         payload = {
-                "token": "true",
-                "context": "1",
-                "smarthome_id": smarthome,
-                "query[id_device]": deviceID,
-                "query[time_boost]": "0",
-                "query[gv_mode]": gvMode,
-                "query[nv_mode]": gvMode,
-                "peremption": "15000",
-                "lang": "nl_NL",
-            }
+            "token": "true",
+            "context": "1",
+            "smarthome_id": smarthome,
+            "query[id_device]": deviceID,
+            "query[time_boost]": "0",
+            "query[gv_mode]": gvMode,
+            "query[nv_mode]": gvMode,
+            "peremption": "15000",
+            "lang": "nl_NL",
+        }
         extrapayload = {}
         if gvMode == "0":
             extrapayload = {
@@ -288,5 +289,5 @@ class WattsApi:
             return False
         else:
             # raise UnHandledStatuException(response.status_code)
-            _LOGGER.error("Unhandled status code {}".format(response_status_code))
+            _LOGGER.error(f"Unhandled status code {response.status_code}")
             return False
