@@ -30,7 +30,7 @@ class WattsApi:
             _LOGGER.exception(f"Authentication exception {exception}")
             return False
 
-    def getLoginToken(self, forcelogin=False):
+    def getLoginToken(self, forcelogin=False, firstTry=True):
         """Get the access token for the Watts Smarthome API through login or refresh"""
 
         now = datetime.now()
@@ -67,12 +67,15 @@ class WattsApi:
             _LOGGER.debug(f"Received access token. New refresh_token needed on {self._refresh_expires_in}")
             return token
         else:
-            _LOGGER.error(
-                "Something went wrong fetching the token: {}".format(
-                    request_token_result.status_code
+            if firstTry:
+                self.getLoginToken(forcelogin=True, firstTry=False)
+            else:
+                _LOGGER.error(
+                    "Something went wrong fetching the token: {}".format(
+                        request_token_result.status_code
+                    )
                 )
-            )
-            raise None
+                raise None
 
     def loadData(self):
         """load data from api"""
