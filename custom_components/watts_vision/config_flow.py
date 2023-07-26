@@ -21,13 +21,17 @@ CONFIG_SCHEMA = vol.Schema(
 _LOGGER = logging.getLogger(__name__)
 
 
-async def validate_input(hass: HomeAssistant, data: dict[str, Any], current: dict[str, Any] = None) -> dict[str, Any]:
+async def validate_input(
+    hass: HomeAssistant, data: dict[str, Any], current: dict[str, Any] = None
+) -> dict[str, Any]:
     """Validate the user input allows us to connect."""
 
     # Check if the username already exists as an entry
     existing_entries = hass.config_entries.async_entries(DOMAIN)
     for entry in existing_entries:
-        if entry.data.get(CONF_USERNAME) == data[CONF_USERNAME] and (current is None or entry.data.get(CONF_USERNAME) != current.get("username")):
+        if entry.data.get(CONF_USERNAME) == data[CONF_USERNAME] and (
+            current is None or entry.data.get(CONF_USERNAME) != current.get("username")
+        ):
             raise UsernameExists
 
     api = WattsApi(hass, data[CONF_USERNAME], data[CONF_PASSWORD])
@@ -101,7 +105,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             try:
                 _LOGGER.debug("Validate input")
-                validated_data = await validate_input(self.hass, user_input, self.config_entry.data)
+                validated_data = await validate_input(
+                    self.hass, user_input, self.config_entry.data
+                )
 
                 # Update entry
                 _LOGGER.debug("Updating entry")
@@ -130,6 +136,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema({vol.Required(CONF_USERNAME, default=str(self.config_entry.data[CONF_USERNAME])): str, vol.Required(CONF_PASSWORD): str}),
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_USERNAME,
+                        default=str(self.config_entry.data[CONF_USERNAME]),
+                    ): str,
+                    vol.Required(CONF_PASSWORD): str,
+                }
+            ),
             errors=errors,
         )

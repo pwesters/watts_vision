@@ -15,9 +15,7 @@ SCAN_INTERVAL = timedelta(seconds=120)
 
 
 async def async_setup_entry(
-    hass: HomeAssistantType,
-    config_entry: ConfigEntry,
-    async_add_entities: Callable
+    hass: HomeAssistantType, config_entry: ConfigEntry, async_add_entities: Callable
 ):
     """Set up the binary_sensor platform."""
     wattsClient: WattsApi = hass.data[DOMAIN][API_CLIENT]
@@ -37,7 +35,7 @@ async def async_setup_entry(
                                     wattsClient,
                                     smartHomes[y]["smarthome_id"],
                                     smartHomes[y]["zones"][z]["devices"][x]["id"],
-                                    smartHomes[y]["zones"][z]["zone_label"]
+                                    smartHomes[y]["zones"][z]["zone_label"],
                                 )
                             )
 
@@ -82,7 +80,7 @@ class WattsVisionHeatingBinarySensor(BinarySensorEntity):
             "manufacturer": "Watts",
             "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
-            "via_device": (DOMAIN, self.smartHome)
+            "via_device": (DOMAIN, self.smartHome),
         }
 
     async def async_update(self):

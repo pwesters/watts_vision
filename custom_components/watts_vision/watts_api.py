@@ -35,7 +35,11 @@ class WattsApi:
 
         now = datetime.now()
 
-        if (forcelogin or not self._refresh_expires_in or self._refresh_expires_in <= now):
+        if (
+            forcelogin
+            or not self._refresh_expires_in
+            or self._refresh_expires_in <= now
+        ):
             _LOGGER.debug("Login to get an access token.")
             payload = {
                 "grant_type": "password",
@@ -43,7 +47,7 @@ class WattsApi:
                 "password": self._password,
                 "client_id": "app-front",
             }
-        elif (self._token_expires <= now):
+        elif self._token_expires <= now:
             _LOGGER.debug("Refreshing access token")
             payload = {
                 "grant_type": "refresh_token",
@@ -61,10 +65,16 @@ class WattsApi:
         if request_token_result.status_code == 200:
             token = request_token_result.json()["access_token"]
             self._token = token
-            self._token_expires = now + timedelta(seconds=request_token_result.json()["expires_in"])
+            self._token_expires = now + timedelta(
+                seconds=request_token_result.json()["expires_in"]
+            )
             self._refresh_token = request_token_result.json()["refresh_token"]
-            self._refresh_expires_in = now + timedelta(seconds=request_token_result.json()["refresh_expires_in"])
-            _LOGGER.debug(f"Received access token. New refresh_token needed on {self._refresh_expires_in}")
+            self._refresh_expires_in = now + timedelta(
+                seconds=request_token_result.json()["refresh_expires_in"]
+            )
+            _LOGGER.debug(
+                f"Received access token. New refresh_token needed on {self._refresh_expires_in}"
+            )
             return token
         else:
             if firstTry:
@@ -125,9 +135,10 @@ class WattsApi:
         now = datetime.now()
 
         if (
-            self._token_expires and self._token_expires <= now
-            or
-            self._refresh_expires_in and self._refresh_expires_in <= now
+            self._token_expires
+            and self._token_expires <= now
+            or self._refresh_expires_in
+            and self._refresh_expires_in <= now
         ):
             self.getLoginToken()
 
@@ -150,7 +161,10 @@ class WattsApi:
             if self._smartHomeData[y]["smarthome_id"] == smarthome:
                 for z in range(len(self._smartHomeData[y]["zones"])):
                     for x in range(len(self._smartHomeData[y]["zones"][z]["devices"])):
-                        if self._smartHomeData[y]["zones"][z]["devices"][x]["id"] == deviceId:
+                        if (
+                            self._smartHomeData[y]["zones"][z]["devices"][x]["id"]
+                            == deviceId
+                        ):
                             return self._smartHomeData[y]["zones"][z]["devices"][x]
 
         return None
@@ -161,22 +175,25 @@ class WattsApi:
             if self._smartHomeData[y]["smarthome_id"] == smarthome:
                 for z in range(len(self._smartHomeData[y]["zones"])):
                     for x in range(len(self._smartHomeData[y]["zones"][z]["devices"])):
-                        if self._smartHomeData[y]["zones"][z]["devices"][x]["id"] == deviceId:
+                        if (
+                            self._smartHomeData[y]["zones"][z]["devices"][x]["id"]
+                            == deviceId
+                        ):
                             # If device is found, overwrite it with the new state
                             self._smartHomeData[y]["zones"][z]["devices"][x] = newState
                             return self._smartHomeData[y]["zones"][z]["devices"][x]
 
         return None
 
-    # def setDevice(self, smarthome: str, deviceId: str, newState: str):
-    #     """Set specific device"""
-    #     for y in range(len(self._smartHomeData)):
-    #         if self._smartHomeData[y]["smarthome_id"] == smarthome:
-    #             for x in range(len(self._smartHomeData[y]["devices"])):
-    #                 if self._smartHomeData[y]["devices"][x]["id"] == deviceId:
-    #                     # If device is found, overwrite it with the new state
-    #                     self._smartHomeData[y]["devices"][x] = newState
-    #                     return self._smartHomeData[y]["devices"][x]
+        # def setDevice(self, smarthome: str, deviceId: str, newState: str):
+        #     """Set specific device"""
+        #     for y in range(len(self._smartHomeData)):
+        #         if self._smartHomeData[y]["smarthome_id"] == smarthome:
+        #             for x in range(len(self._smartHomeData[y]["devices"])):
+        #                 if self._smartHomeData[y]["devices"][x]["id"] == deviceId:
+        #                     # If device is found, overwrite it with the new state
+        #                     self._smartHomeData[y]["devices"][x] = newState
+        #                     return self._smartHomeData[y]["devices"][x]
 
         return None
 
@@ -249,11 +266,7 @@ class WattsApi:
         self._refresh_token_if_expired()
 
         headers = {"Authorization": f"Bearer {self._token}"}
-        payload = {
-            "token": "true",
-            "smarthome_id": smarthome,
-            "lang": "nl_NL"
-        }
+        payload = {"token": "true", "smarthome_id": smarthome, "lang": "nl_NL"}
 
         last_connection_result = requests.post(
             url="https://smarthome.wattselectronics.com/api/v0.1/human/sandbox/check_last_connexion/",

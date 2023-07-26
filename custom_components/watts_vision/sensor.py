@@ -19,9 +19,7 @@ SCAN_INTERVAL = timedelta(seconds=120)
 
 
 async def async_setup_entry(
-    hass: HomeAssistantType,
-    config_entry: ConfigEntry,
-    async_add_entities: Callable
+    hass: HomeAssistantType, config_entry: ConfigEntry, async_add_entities: Callable
 ):
     """Set up the sensor platform."""
 
@@ -42,7 +40,7 @@ async def async_setup_entry(
                                     wattsClient,
                                     smartHomes[y]["smarthome_id"],
                                     smartHomes[y]["zones"][z]["devices"][x]["id"],
-                                    smartHomes[y]["zones"][z]["zone_label"]
+                                    smartHomes[y]["zones"][z]["zone_label"],
                                 )
                             )
                             sensors.append(
@@ -50,7 +48,7 @@ async def async_setup_entry(
                                     wattsClient,
                                     smartHomes[y]["smarthome_id"],
                                     smartHomes[y]["zones"][z]["devices"][x]["id"],
-                                    smartHomes[y]["zones"][z]["zone_label"]
+                                    smartHomes[y]["zones"][z]["zone_label"],
                                 )
                             )
                             sensors.append(
@@ -58,14 +56,12 @@ async def async_setup_entry(
                                     wattsClient,
                                     smartHomes[y]["smarthome_id"],
                                     smartHomes[y]["zones"][z]["devices"][x]["id"],
-                                    smartHomes[y]["zones"][z]["zone_label"]
+                                    smartHomes[y]["zones"][z]["zone_label"],
                                 )
                             )
             sensors.append(
                 WattsVisionLastCommunicationSensor(
-                    wattsClient,
-                    smartHomes[y]["smarthome_id"],
-                    smartHomes[y]["label"]
+                    wattsClient, smartHomes[y]["smarthome_id"], smartHomes[y]["label"]
                 )
             )
 
@@ -117,7 +113,7 @@ class WattsVisionThermostatSensor(SensorEntity):
             "manufacturer": "Watts",
             "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
-            "via_device": (DOMAIN, self.smartHome)
+            "via_device": (DOMAIN, self.smartHome),
         }
 
     async def async_update(self):
@@ -176,14 +172,16 @@ class WattsVisionTemperatureSensor(SensorEntity):
             "manufacturer": "Watts",
             "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
-            "via_device": (DOMAIN, self.smartHome)
+            "via_device": (DOMAIN, self.smartHome),
         }
 
     async def async_update(self):
         # try:
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
         if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
-            self._state = round((int(smartHomeDevice["temperature_air"]) - 320) * 5 / 9 / 10, 1)
+            self._state = round(
+                (int(smartHomeDevice["temperature_air"]) - 320) * 5 / 9 / 10, 1
+            )
         else:
             self._state = int(smartHomeDevice["temperature_air"]) / 10
         # except:
@@ -236,7 +234,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
             "manufacturer": "Watts",
             "name": "Thermostat " + self.zone,
             "model": "BT-D03-RF",
-            "via_device": (DOMAIN, self.smartHome)
+            "via_device": (DOMAIN, self.smartHome),
         }
 
     async def async_update(self):
