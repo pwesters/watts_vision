@@ -29,7 +29,8 @@ from .const import (
     PRESET_MODE_MAP,
     PRESET_MODE_REVERSE_MAP,
     PRESET_OFF,
-    PRESET_PROGRAM,
+    PRESET_PROGRAM_ON,
+    PRESET_PROGRAM_OFF
 )
 from .watts_api import WattsApi
 
@@ -340,7 +341,7 @@ class WattsThermostat(ClimateEntity):
                 value = str(
                     int(self._attr_extra_state_attributes["consigne_boost"] * 10)
                 )
-            elif preset_mode == PRESET_PROGRAM:
+            elif preset_mode == PRESET_PROGRAM_ON or preset_mode == PRESET_PROGRAM_OFF:
                 value = str(
                     int(self._attr_extra_state_attributes["consigne_manuel"] * 10)
                 )

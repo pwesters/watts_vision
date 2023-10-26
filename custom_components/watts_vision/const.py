@@ -12,7 +12,8 @@ DOMAIN = "watts_vision"
 
 PRESET_DEFROST = "Frost Protection"
 PRESET_OFF = "Off"
-PRESET_PROGRAM = "Program"
+PRESET_PROGRAM_ON = "Program on"
+PRESET_PROGRAM_OFF = "Program off"
 
 PRESET_MODE_MAP = {
     "0": PRESET_COMFORT,
@@ -20,7 +21,8 @@ PRESET_MODE_MAP = {
     "2": PRESET_DEFROST,
     "3": PRESET_ECO,
     "4": PRESET_BOOST,
-    "11": PRESET_PROGRAM,
+    "8": PRESET_PROGRAM_ON,
+    "11": PRESET_PROGRAM_OFF,
 }
 
 PRESET_MODE_REVERSE_MAP = {
@@ -29,7 +31,8 @@ PRESET_MODE_REVERSE_MAP = {
     PRESET_DEFROST: "2",
     PRESET_ECO: "3",
     PRESET_BOOST: "4",
-    PRESET_PROGRAM: "11",
+    PRESET_PROGRAM_ON: "8",
+    PRESET_PROGRAM_OFF: "11",
 }
 
 SCAN_INTERVAL = timedelta(seconds=120)
