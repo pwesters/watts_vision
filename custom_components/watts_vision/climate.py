@@ -4,33 +4,25 @@ from typing import Callable
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
-    CURRENT_HVAC_COOL,
-    CURRENT_HVAC_HEAT,
-    CURRENT_HVAC_IDLE,
-    CURRENT_HVAC_OFF,
-    HVAC_MODE_AUTO,
-    HVAC_MODE_COOL,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
-    SUPPORT_PRESET_MODE,
-    SUPPORT_TARGET_TEMPERATURE,
+    ClimateEntityFeature,
+    HVACAction,
+    HVACMode,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import TEMP_FAHRENHEIT
+from homeassistant.const import UnitOfTemperature
 from homeassistant.helpers.typing import HomeAssistantType
 
 from .const import (
     API_CLIENT,
     DOMAIN,
     PRESET_BOOST,
-    PRESET_COMFORT,
     PRESET_DEFROST,
     PRESET_ECO,
     PRESET_MODE_MAP,
     PRESET_MODE_REVERSE_MAP,
     PRESET_OFF,
+    PRESET_PROGRAM_OFF,
     PRESET_PROGRAM_ON,
-    PRESET_PROGRAM_OFF
 )
 from .watts_api import WattsApi
 
@@ -97,15 +89,17 @@ class WattsThermostat(ClimateEntity):
 
     @property
     def supported_features(self):
-        return SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
+        return (
+            ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+        )
 
     @property
     def temperature_unit(self) -> str:
-        return TEMP_FAHRENHEIT
+        return UnitOfTemperature.FAHRENHEIT
 
     @property
     def hvac_modes(self) -> list[str]:
-        return [HVAC_MODE_HEAT] + [HVAC_MODE_COOL] + [HVAC_MODE_OFF]
+        return [HVACMode.HEAT] + [HVACMode.COOL] + [HVACMode.OFF]
 
     @property
     def hvac_mode(self) -> str:
@@ -138,7 +132,6 @@ class WattsThermostat(ClimateEntity):
         }
 
     async def async_update(self):
-        # try:
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
 
         self._attr_current_temperature = float(smartHomeDevice["temperature_air"]) / 10
@@ -151,19 +144,19 @@ class WattsThermostat(ClimateEntity):
 
         if smartHomeDevice["heating_up"] == "0":
             if smartHomeDevice["gv_mode"] == "1":
-                self._attr_hvac_action = CURRENT_HVAC_OFF
+                self._attr_hvac_action = HVACAction.OFF
             else:
-                self._attr_hvac_action = CURRENT_HVAC_IDLE
+                self._attr_hvac_action = HVACAction.IDLE
         else:
             if smartHomeDevice["heat_cool"] == "1":
-                self._attr_hvac_action = CURRENT_HVAC_COOL
+                self._attr_hvac_action = HVACAction.COOLING
             else:
-                self._attr_hvac_action = CURRENT_HVAC_HEAT
+                self._attr_hvac_action = HVACAction.HEATING
 
         if smartHomeDevice["heat_cool"] == "1":
-            self._attr_hvac_mode = HVAC_MODE_COOL
+            self._attr_hvac_mode = HVACMode.COOL
         else:
-            self._attr_hvac_mode = HVAC_MODE_HEAT
+            self._attr_hvac_mode = HVACMode.HEAT
         self._attr_preset_mode = PRESET_MODE_MAP[smartHomeDevice["gv_mode"]]
 
         if smartHomeDevice["gv_mode"] == "0":
@@ -171,7 +164,7 @@ class WattsThermostat(ClimateEntity):
                 float(smartHomeDevice["consigne_confort"]) / 10
             )
         elif smartHomeDevice["gv_mode"] == "1":
-            self._attr_hvac_mode = HVAC_MODE_OFF
+            self._attr_hvac_mode = HVACMode.OFF
             self._attr_target_temperature = None
         elif smartHomeDevice["gv_mode"] == "2":
             self._attr_target_temperature = float(smartHomeDevice["consigne_hg"]) / 10
@@ -203,13 +196,9 @@ class WattsThermostat(ClimateEntity):
         )
         self._attr_extra_state_attributes["gv_mode"] = smartHomeDevice["gv_mode"]
 
-        # except:
-        #     self._available = False
-        #     _LOGGER.exception("Error retrieving data.")
-
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
-        if hvac_mode == HVAC_MODE_HEAT or hvac_mode == HVAC_MODE_COOL:
+        if hvac_mode == HVACMode.HEAT or hvac_mode == HVACMode.COOL:
             value = "0"
             if self._attr_extra_state_attributes["previous_gv_mode"] == "0":
                 value = str(
@@ -295,7 +284,7 @@ class WattsThermostat(ClimateEntity):
             )
             await self.hass.async_add_executor_job(func)
 
-        if hvac_mode == HVAC_MODE_OFF:
+        if hvac_mode == HVACMode.OFF:
             self._attr_extra_state_attributes[
                 "previous_gv_mode"
             ] = self._attr_extra_state_attributes["gv_mode"]

@@ -3,9 +3,13 @@ from datetime import timedelta
 import logging
 from typing import Callable, Optional
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, STATE_CLASS_MEASUREMENT
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
+from homeassistant.const import UnitOfTemperature
 from homeassistant.helpers.typing import HomeAssistantType
 from numpy import NaN
 
@@ -117,14 +121,9 @@ class WattsVisionThermostatSensor(SensorEntity):
         }
 
     async def async_update(self):
-        # try:
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
 
         self._state = PRESET_MODE_MAP[smartHomeDevice["gv_mode"]]
-
-        # except:
-        #     self._available = False
-        #     _LOGGER.exception("Error retrieving data.")
 
 
 class WattsVisionTemperatureSensor(SensorEntity):
@@ -156,7 +155,7 @@ class WattsVisionTemperatureSensor(SensorEntity):
 
     @property
     def state_class(self):
-        return STATE_CLASS_MEASUREMENT
+        return SensorStateClass.MEASUREMENT
 
     @property
     def device_class(self):
@@ -164,7 +163,7 @@ class WattsVisionTemperatureSensor(SensorEntity):
 
     @property
     def native_unit_of_measurement(self):
-        return TEMP_FAHRENHEIT
+        return UnitOfTemperature.FAHRENHEIT
 
     @property
     def device_info(self):
@@ -180,17 +179,13 @@ class WattsVisionTemperatureSensor(SensorEntity):
         }
 
     async def async_update(self):
-        # try:
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
-        if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
+        if self.hass.config.units.temperature_unit == UnitOfTemperature.CELSIUS:
             self._state = round(
                 (int(smartHomeDevice["temperature_air"]) - 320) * 5 / 9 / 10, 1
             )
         else:
             self._state = int(smartHomeDevice["temperature_air"]) / 10
-        # except:
-        #     self._available = False
-        #     _LOGGER.exception("Error retrieving data.")
 
 
 class WattsVisionSetTemperatureSensor(SensorEntity):
@@ -222,7 +217,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
 
     @property
     def state_class(self):
-        return STATE_CLASS_MEASUREMENT
+        return SensorStateClass.MEASUREMENT
 
     @property
     def device_class(self):
@@ -230,7 +225,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
 
     @property
     def native_unit_of_measurement(self):
-        return TEMP_FAHRENHEIT
+        return UnitOfTemperature.FAHRENHEIT
 
     @property
     def device_info(self):
@@ -246,7 +241,6 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
         }
 
     async def async_update(self):
-        # try:
         smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
 
         if smartHomeDevice["gv_mode"] == "0":
@@ -262,11 +256,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
         if smartHomeDevice["gv_mode"] == "11" or smartHomeDevice["gv_mode"] == "8":
             self._state = smartHomeDevice["consigne_manuel"]
         if self._state != NaN:
-            if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
+            if self.hass.config.units.temperature_unit == UnitOfTemperature.CELSIUS:
                 self._state = round((int(self._state) - 320) * 5 / 9 / 10, 1)
             else:
                 self._state = int(self._state) / 10
-
-        # except:
-        #     self._available = False
-        #     _LOGGER.exception("Error retrieving data.")
