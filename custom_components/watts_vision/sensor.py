@@ -3,7 +3,7 @@ from datetime import timedelta
 import logging
 from typing import Callable, Optional
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, STATE_CLASS_MEASUREMENT
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.helpers.typing import HomeAssistantType
@@ -155,6 +155,10 @@ class WattsVisionTemperatureSensor(SensorEntity):
         return self._state
 
     @property
+    def state_class(self):
+        return STATE_CLASS_MEASUREMENT
+
+    @property
     def device_class(self):
         return SensorDeviceClass.TEMPERATURE
 
@@ -217,6 +221,10 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
         return self._state
 
     @property
+    def state_class(self):
+        return STATE_CLASS_MEASUREMENT
+
+    @property
     def device_class(self):
         return SensorDeviceClass.TEMPERATURE
 
@@ -251,7 +259,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
             self._state = smartHomeDevice["consigne_eco"]
         if smartHomeDevice["gv_mode"] == "4":
             self._state = smartHomeDevice["consigne_boost"]
-        if smartHomeDevice["gv_mode"] == "11":
+        if smartHomeDevice["gv_mode"] == "11" or smartHomeDevice["gv_mode"] == "8":
             self._state = smartHomeDevice["consigne_manuel"]
         if self._state != NaN:
             if self.hass.config.units.temperature_unit == TEMP_CELSIUS:
