@@ -73,7 +73,10 @@ async def async_setup_entry(
                             )
             sensors.append(
                 WattsVisionLastCommunicationSensor(
-                    wattsClient, smartHomes[y]["smarthome_id"], smartHomes[y]["label"]
+                    wattsClient,
+                    smartHomes[y]["smarthome_id"],
+                    smartHomes[y]["label"],
+                    smartHomes[y]["mac_address"]
                 )
             )
 
