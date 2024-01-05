@@ -14,7 +14,7 @@ from homeassistant.helpers.typing import HomeAssistantType
 from numpy import NaN
 
 from .central_unit import WattsVisionLastCommunicationSensor
-from .const import API_CLIENT, DOMAIN, PRESET_MODE_MAP
+from .const import API_CLIENT, DOMAIN, ERROR_MAP, PRESET_MODE_MAP
 from .watts_api import WattsApi
 
 _LOGGER = logging.getLogger(__name__)
@@ -57,6 +57,14 @@ async def async_setup_entry(
                             )
                             sensors.append(
                                 WattsVisionSetTemperatureSensor(
+                                    wattsClient,
+                                    smartHomes[y]["smarthome_id"],
+                                    smartHomes[y]["zones"][z]["devices"][x]["id"],
+                                    smartHomes[y]["zones"][z]["zone_label"],
+                                )
+                            )
+                            sensors.append(
+                                WattsVisionErrorSensor(
                                     wattsClient,
                                     smartHomes[y]["smarthome_id"],
                                     smartHomes[y]["zones"][z]["devices"][x]["id"],
@@ -260,3 +268,58 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
                 self._state = round((int(self._state) - 320) * 5 / 9 / 10, 1)
             else:
                 self._state = int(self._state) / 10
+
+
+class WattsVisionErrorSensor(SensorEntity):
+    """Representation of a Watts Vision battery sensor."""
+
+    def __init__(self, wattsClient: WattsApi, smartHome: str, id: str, zone: str):
+        super().__init__()
+        self.client = wattsClient
+        self.smartHome = smartHome
+        self.id = id
+        self.zone = zone
+        self._name = "Error " + zone
+        self._state = None
+        self._available = True
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique ID of the sensor."""
+        return "error_" + self.id
+
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        return self._name
+
+    @property
+    def state(self) -> Optional[str]:
+        if self.client.getDevice(self.smartHome, self.id)['error_code'] > 1:
+            _LOGGER.warning('Thermostat battery for device %s is (almost) empty.', self.id)
+        return self._state
+
+    @property
+    def device_class(self):
+        return SensorDeviceClass.ENUM
+   
+    @property
+    def options(self):
+        return list(ERROR_MAP.values())
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                # Serial numbers are unique identifiers within a specific domain
+                (DOMAIN, self.id)
+            },
+            "manufacturer": "Watts",
+            "name": "Thermostat " + self.zone,
+            "model": "BT-D03-RF",
+            "via_device": (DOMAIN, self.smartHome)
+        }
+    
+    async def async_update(self):
+        smartHomeDevice = self.client.getDevice(self.smartHome, self.id)
+        self._state = ERROR_MAP[smartHomeDevice["error_code"]]

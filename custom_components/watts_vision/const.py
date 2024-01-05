@@ -36,3 +36,16 @@ PRESET_MODE_REVERSE_MAP = {
 }
 
 SCAN_INTERVAL = timedelta(seconds=120)
+
+NO_ISSUES = "No issues"
+DEF_BAT_TH = "Battery failure"
+
+ERROR_MAP = {
+    0: NO_ISSUES,
+    1: DEF_BAT_TH
+}
+
+ERROR_REVERSE_MAP = {
+    NO_ISSUES: 0,
+    DEF_BAT_TH: 1
+}
