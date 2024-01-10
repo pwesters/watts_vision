@@ -269,7 +269,8 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
             self._state = smartHomeDevice["consigne_manuel"]
         if self._state != NaN:
             if self.hass.config.units.temperature_unit == UnitOfTemperature.CELSIUS:
-                self._state = round((int(self._state) - 320) * 5 / 9 / 10, 1)
+                # self._state = round((int(self._state) - 320) * 5 / 9 / 10, 1)
+                self._state = round(((float(self._state) / 10.0) - 32) * (5.0 / 9.0), 1)
             else:
                 self._state = int(self._state) / 10
 
