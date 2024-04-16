@@ -120,7 +120,7 @@ class WattsApi:
         payload = {"token": "true", "smarthome_id": smarthome, "lang": "nl_NL"}
 
         devices_result = requests.post(
-            url="https://smarthome.wattselectronics.com/api/v0.1/human/smarthome/read",
+            url="https://smarthome.wattselectronics.com/api/v0.1/human/smarthome/read/",
             headers=headers,
             data=payload,
         )
