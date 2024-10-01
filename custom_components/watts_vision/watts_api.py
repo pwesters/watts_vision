@@ -58,7 +58,7 @@ class WattsApi:
             _LOGGER.debug("Getting token called unneeded.")
 
         request_token_result = requests.post(
-            url="https://smarthome.wattselectronics.com/auth/realms/watts/protocol/openid-connect/token",
+            url="https://auth.smarthome.wattselectronics.com/realms/watts/protocol/openid-connect/token",
             data=payload,
         )
 
