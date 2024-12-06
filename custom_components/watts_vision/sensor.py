@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature
 from homeassistant.helpers.typing import HomeAssistantType
-from numpy import NaN
+from numpy import nan as npNaN
 
 from .central_unit import WattsVisionLastCommunicationSensor
 from .const import API_CLIENT, DOMAIN, ERROR_MAP, PRESET_MODE_MAP
@@ -261,7 +261,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
         if smartHomeDevice["gv_mode"] == "0":
             self._state = smartHomeDevice["consigne_confort"]
         if smartHomeDevice["gv_mode"] == "1":
-            self._state = NaN
+            self._state = npNaN
         if smartHomeDevice["gv_mode"] == "2":
             self._state = smartHomeDevice["consigne_hg"]
         if smartHomeDevice["gv_mode"] == "3":
@@ -270,7 +270,7 @@ class WattsVisionSetTemperatureSensor(SensorEntity):
             self._state = smartHomeDevice["consigne_boost"]
         if smartHomeDevice["gv_mode"] == "11" or smartHomeDevice["gv_mode"] == "8":
             self._state = smartHomeDevice["consigne_manuel"]
-        if self._state != NaN:
+        if self._state != npNaN:
             if self.hass.config.units.temperature_unit == UnitOfTemperature.CELSIUS:
                 # self._state = round((int(self._state) - 320) * 5 / 9 / 10, 1)
                 self._state = round(
