@@ -34,7 +34,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     for platform in PLATFORMS:
         hass.async_create_task(
-            await hass.config_entries.async_forward_entry_setup(entry, platform)
+            await hass.config_entries.async_forward_entry_setups(entry, platform)
         )
 
     async def refresh_devices(event_time):
