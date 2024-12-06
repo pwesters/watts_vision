@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import logging
 
-from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.core import HomeAssistant
 import requests
 
 _LOGGER = logging.getLogger(__name__)
@@ -10,7 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 class WattsApi:
     """Interface to the Watts API."""
 
-    def __init__(self, hass: HomeAssistantType, username: str, password: str):
+    def __init__(self, hass: HomeAssistant, username: str, password: str):
         """Init dummy hub."""
         self._hass = hass
         self._username = username
