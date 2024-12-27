@@ -32,7 +32,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data[DOMAIN][API_CLIENT] = client
 
-    await hass.config_entries.async_forward_entry_setups(entry, platform)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     async def refresh_devices(event_time):
         await hass.async_add_executor_job(client.reloadDevices)
